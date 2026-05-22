@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { authAPI } from '@/api/client';
+import api, { authAPI } from '@/api/client';
+import ShowSnackbar, { showSnackbar } from '@/components/common/ShowSnackbar';
 
 const AuthContext = createContext(null);
 
@@ -9,7 +10,10 @@ export const AuthProvider = ({ children }) => {
 
   const loadUser = useCallback(async () => {
     const token = localStorage.getItem('accessToken');
-    if (!token) { setLoading(false); return; }
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     try {
       const { data } = await authAPI.getMe();
       setUser(data.data);
@@ -20,7 +24,9 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  useEffect(() => { loadUser(); }, [loadUser]);
+  useEffect(() => {
+    loadUser();
+  }, [loadUser]);
 
   // Inactivity logout (30 min)
   useEffect(() => {
@@ -28,12 +34,20 @@ export const AuthProvider = ({ children }) => {
     let timer;
     const reset = () => {
       clearTimeout(timer);
-      timer = setTimeout(() => { logout(); }, 30 * 60 * 1000);
+      timer = setTimeout(
+        () => {
+          logout();
+        },
+        30 * 60 * 1000,
+      );
     };
     const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
-    events.forEach(e => window.addEventListener(e, reset));
+    events.forEach((e) => window.addEventListener(e, reset));
     reset();
-    return () => { clearTimeout(timer); events.forEach(e => window.removeEventListener(e, reset)); };
+    return () => {
+      clearTimeout(timer);
+      events.forEach((e) => window.removeEventListener(e, reset));
+    };
   }, [user]);
 
   const login = async (email, password) => {
@@ -41,24 +55,32 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('accessToken', data.data.accessToken);
     localStorage.setItem('refreshToken', data.data.refreshToken);
     setUser(data.data.user);
-    window.location.reload();
+    showSnackbar('Logged in successfully!', 'success');
+    // window.location.reload();
     return data.data;
   };
 
   const logout = async () => {
-    try { await authAPI.logout(localStorage.getItem('refreshToken')); } catch (_) {}
+    try {
+      await authAPI.logout(localStorage.getItem('refreshToken'));
+    } catch (_) {}
+    showSnackbar('Logged out successfully!', 'success');
     localStorage.clear();
     setUser(null);
   };
 
   const updatePreferences = async (prefs) => {
     await authAPI.updatePreferences(prefs);
-    setUser(prev => ({ ...prev, preferences: { ...prev.preferences, ...prefs } }));
+    setUser((prev) => ({
+      ...prev,
+      preferences: { ...prev.preferences, ...prefs },
+    }));
   };
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout, updatePreferences, setUser }}>
       {children}
+      <ShowSnackbar />
     </AuthContext.Provider>
   );
 };
