@@ -1,0 +1,35 @@
+{
+  "name": "sms-frontend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.15.3",
+    "@mui/lab": "^5.0.0-alpha.159",
+    "@mui/material": "^5.15.3",
+    "@mui/x-date-pickers": "^6.18.7",
+    "@tanstack/react-query": "^5.17.9",
+    "axios": "^1.6.5",
+    "date-fns": "^3.3.0",
+    "dayjs": "^1.11.10",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
+    "moment": "^2.30.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.21.3",
+    "recharts": "^2.10.3",
+    "zustand": "^4.4.7"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.43",
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.0.8"
+  }
+}
