@@ -1,14 +1,44 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  Drawer, Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText,
-  Tooltip, Avatar, Typography, Divider, IconButton, Chip, useTheme,
+  Drawer,
+  Box,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Tooltip,
+  Avatar,
+  Typography,
+  Divider,
+  IconButton,
+  Chip,
+  useTheme,
 } from '@mui/material';
 import {
-  Dashboard, School, People, Class, Assignment, AttachMoney, Event,
-  Campaign, BarChart, Settings, ChevronLeft, ChevronRight, Logout,
-  Person, CalendarMonth, Grade, Message, BeachAccess, HomeWork,
-  AdminPanelSettings, CorporateFare, Payments,
+  Dashboard,
+  School,
+  People,
+  Class,
+  Assignment,
+  AttachMoney,
+  Event,
+  Campaign,
+  BarChart,
+  Settings,
+  ChevronLeft,
+  ChevronRight,
+  Logout,
+  Person,
+  CalendarMonth,
+  Grade,
+  Message,
+  BeachAccess,
+  HomeWork,
+  AdminPanelSettings,
+  CorporateFare,
+  Payments,
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -16,9 +46,7 @@ const DRAWER_WIDTH = 260;
 const MINI_WIDTH = 72;
 
 const NAV_CONFIG = {
-  superadmin: [
-    { label: 'Schools', icon: <CorporateFare />, path: '/superadmin' },
-  ],
+  superadmin: [{ label: 'Schools', icon: <CorporateFare />, path: '/superadmin' }],
   principal: [
     { label: 'Dashboard', icon: <Dashboard />, path: '/principal' },
     { label: 'Classrooms', icon: <Class />, path: '/principal/classrooms' },
@@ -59,8 +87,11 @@ const NAV_CONFIG = {
 };
 
 const ROLE_LABELS = {
-  superadmin: 'Super Admin', principal: 'Principal',
-  teacher: 'Teacher', student: 'Student', parent: 'Parent',
+  superadmin: 'Super Admin',
+  principal: 'Principal',
+  teacher: 'Teacher',
+  student: 'Student',
+  parent: 'Parent',
 };
 
 export default function Sidebar({ open, onToggle, isMobile, onOpenProfile }) {
@@ -68,9 +99,9 @@ export default function Sidebar({ open, onToggle, isMobile, onOpenProfile }) {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
-  
+
   let navItems = NAV_CONFIG[user?.role] || [];
-  
+
   if (user?.role === 'parent' && location.pathname.includes('/parent/child/')) {
     const studentId = location.pathname.split('/parent/child/')[1].split('/')[0];
     navItems = [
@@ -80,25 +111,29 @@ export default function Sidebar({ open, onToggle, isMobile, onOpenProfile }) {
       { label: 'Calendar', icon: <CalendarMonth />, path: `/parent/child/${studentId}/calendar` },
       { label: 'Exams & Results', icon: <Grade />, path: `/parent/child/${studentId}/exams` },
       { label: 'Fees', icon: <AttachMoney />, path: `/parent/child/${studentId}/fees` },
-      { label: 'Announcements', icon: <Campaign />, path: `/parent/child/${studentId}/announcements` },
+      {
+        label: 'Announcements',
+        icon: <Campaign />,
+        path: `/parent/child/${studentId}/announcements`,
+      },
       { label: 'Messages', icon: <Message />, path: `/parent/child/${studentId}/messages` },
     ];
   }
   const [isHovered, setIsHovered] = useState(false);
 
   const actualOpen = open || isHovered;
-  const containerWidth = isMobile ? 0 : (open ? DRAWER_WIDTH : MINI_WIDTH);
-  const paperWidth = isMobile ? DRAWER_WIDTH : (actualOpen ? DRAWER_WIDTH : MINI_WIDTH);
+  const containerWidth = isMobile ? 0 : open ? DRAWER_WIDTH : MINI_WIDTH;
+  const paperWidth = isMobile ? DRAWER_WIDTH : actualOpen ? DRAWER_WIDTH : MINI_WIDTH;
   const isExpanded = isMobile || actualOpen;
 
-  const handleNav = (path) => { 
-    navigate(path); 
+  const handleNav = (path) => {
+    navigate(path);
     if (isMobile) onToggle();
   };
 
   return (
     <Drawer
-      variant={isMobile ? "temporary" : "permanent"}
+      variant={isMobile ? 'temporary' : 'permanent'}
       open={open}
       onClose={onToggle}
       ModalProps={{ keepMounted: true }}
@@ -112,51 +147,106 @@ export default function Sidebar({ open, onToggle, isMobile, onOpenProfile }) {
         '& .MuiDrawer-paper': {
           width: paperWidth,
           overflowX: 'hidden',
-          transition: theme.transitions.create(['width', 'box-shadow'], { easing: theme.transitions.easing.sharp, duration: 250 }),
+          transition: theme.transitions.create(['width', 'box-shadow'], {
+            easing: theme.transitions.easing.sharp,
+            duration: 250,
+          }),
           boxShadow: isHovered && !open ? theme.shadows[8] : 'none',
-          display: 'flex', flexDirection: 'column',
+          display: 'flex',
+          flexDirection: 'column',
           boxSizing: 'border-box',
         },
       }}
     >
       {/* Header */}
-      <Box sx={{
-        display: 'flex', alignItems: 'center', justifyContent: isExpanded ? 'space-between' : 'center',
-        px: isExpanded ? 2.5 : 1, py: 2.5,
-        borderBottom: '1px solid rgba(255,255,255,0.1)',
-        minHeight: 72,
-      }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: isExpanded ? 'space-between' : 'center',
+          px: isExpanded ? 2.5 : 1,
+          py: 2.5,
+          borderBottom: '1px solid rgba(255,255,255,0.1)',
+          minHeight: 72,
+        }}
+      >
         {isExpanded && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Box sx={{
-              width: 36, height: 36, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
+            <Box
+              sx={{
+                width: 36,
+                height: 36,
+                borderRadius: 2,
+                bgcolor: 'rgba(255,255,255,0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
               <School sx={{ fontSize: 20 }} />
             </Box>
             <Box>
-              <Typography variant="subtitle2" fontWeight={800} sx={{ color: '#fff', lineHeight: 1, fontSize: 13 }}>EduFlow</Typography>
-              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)', fontSize: 10 }}>Management System</Typography>
+              <Typography
+                variant="subtitle2"
+                fontWeight={800}
+                sx={{ color: '#fff', lineHeight: 1, fontSize: 13 }}
+              >
+                EduFlow
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)', fontSize: 10 }}>
+                Management System
+              </Typography>
             </Box>
           </Box>
         )}
-        <IconButton onClick={onToggle} size="small"
-          sx={{ color: 'rgba(255,255,255,0.8)', '&:hover': { bgcolor: 'rgba(255,255,255,0.1)', color: '#fff' } }}>
-          {isExpanded
-            ? <ChevronLeft sx={{ fontSize: 20,
+        <IconButton
+          onClick={onToggle}
+          size="small"
+          sx={{
+            color: 'rgba(255,255,255,0.8)',
+            '&:hover': { bgcolor: 'rgba(255,255,255,0.1)', color: '#fff' },
+          }}
+        >
+          {isExpanded ? (
+            <ChevronLeft
+              sx={{
+                fontSize: 20,
                 transition: 'transform 0.3s',
-                transform: isExpanded ? 'rotate(0deg)' : 'rotate(180deg)' }} />
-            : <ChevronRight sx={{ fontSize: 20 }} />}
+                transform: isExpanded ? 'rotate(0deg)' : 'rotate(180deg)',
+              }}
+            />
+          ) : (
+            <ChevronRight sx={{ fontSize: 20 }} />
+          )}
         </IconButton>
       </Box>
 
       {/* School name */}
       {isExpanded && user?.role !== 'superadmin' && (
         <Box sx={{ px: 2.5, py: 1.5, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-          <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: 1, fontSize: 10 }}>
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'rgba(255,255,255,0.5)',
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+              fontSize: 10,
+            }}
+          >
             School
           </Typography>
-          <Typography variant="body2" fontWeight={600} sx={{ color: 'rgba(255,255,255,0.9)', fontSize: 12, mt: 0.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <Typography
+            variant="body2"
+            fontWeight={600}
+            sx={{
+              color: 'rgba(255,255,255,0.9)',
+              fontSize: 12,
+              mt: 0.3,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
             {user?.school?.name || ''}
           </Typography>
         </Box>
@@ -165,7 +255,11 @@ export default function Sidebar({ open, onToggle, isMobile, onOpenProfile }) {
       {/* Nav Items */}
       <List sx={{ flex: 1, py: 1.5, px: isExpanded ? 1.5 : 0.5 }}>
         {navItems.map((item) => {
-          const isActive = location.pathname === item.path || (item.path !== '/parent' && item.path !== '/' + user?.role && location.pathname.startsWith(item.path));
+          const isActive =
+            location.pathname === item.path ||
+            (item.path !== '/parent' &&
+              item.path !== '/' + user?.role &&
+              location.pathname.startsWith(item.path));
           return (
             <Tooltip key={item.path} title={!isExpanded ? item.label : ''} placement="right" arrow>
               <ListItem disablePadding sx={{ mb: 0.5 }}>
@@ -183,21 +277,36 @@ export default function Sidebar({ open, onToggle, isMobile, onOpenProfile }) {
                     transition: 'all 0.18s ease',
                   }}
                 >
-                  <ListItemIcon sx={{
-                    minWidth: isExpanded ? 36 : 'auto',
-                    color: isActive ? '#fff' : 'rgba(255,255,255,0.65)',
-                    '& .MuiSvgIcon-root': { fontSize: 20 },
-                  }}>
+                  <ListItemIcon
+                    sx={{
+                      minWidth: isExpanded ? 36 : 'auto',
+                      color: isActive ? '#fff' : 'rgba(255,255,255,0.65)',
+                      '& .MuiSvgIcon-root': { fontSize: 20 },
+                    }}
+                  >
                     {item.icon}
                   </ListItemIcon>
                   {isExpanded && (
                     <ListItemText
                       primary={item.label}
-                      primaryTypographyProps={{ fontSize: 13.5, fontWeight: isActive ? 700 : 500, color: isActive ? '#fff' : 'rgba(255,255,255,0.8)' }}
+                      primaryTypographyProps={{
+                        fontSize: 13.5,
+                        fontWeight: isActive ? 700 : 500,
+                        color: isActive ? '#fff' : 'rgba(255,255,255,0.8)',
+                      }}
                     />
                   )}
                   {isExpanded && isActive && (
-                    <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#fff', ml: 'auto', flexShrink: 0 }} />
+                    <Box
+                      sx={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        bgcolor: '#fff',
+                        ml: 'auto',
+                        flexShrink: 0,
+                      }}
+                    />
                   )}
                 </ListItemButton>
               </ListItem>
@@ -211,28 +320,59 @@ export default function Sidebar({ open, onToggle, isMobile, onOpenProfile }) {
         <Box
           onClick={onOpenProfile}
           sx={{
-            display: 'flex', alignItems: 'center', gap: 1.5, mb: isExpanded ? 1.5 : 0,
-            cursor: 'pointer', p: 1, mx: -1, borderRadius: 2,
-            '&:hover': { bgcolor: 'rgba(255,255,255,0.05)' }
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            mb: isExpanded ? 1.5 : 0,
+            cursor: 'pointer',
+            p: 1,
+            mx: -1,
+            borderRadius: 2,
+            '&:hover': { bgcolor: 'rgba(255,255,255,0.05)' },
           }}
         >
           <Avatar
             src={user?.photo}
             sx={{
-              width: 36, height: 36, fontSize: 14, fontWeight: 700,
-              bgcolor: 'rgba(255,255,255,0.25)', border: '2px solid rgba(255,255,255,0.4)',
+              width: 36,
+              height: 36,
+              fontSize: 14,
+              fontWeight: 700,
+              bgcolor: 'rgba(255,255,255,0.25)',
+              border: '2px solid rgba(255,255,255,0.4)',
               flexShrink: 0,
             }}
           >
-            {user?.firstName?.[0]}{user?.lastName?.[0]}
+            {user?.firstName?.[0]}
+            {user?.lastName?.[0]}
           </Avatar>
           {isExpanded && (
             <Box sx={{ overflow: 'hidden', flex: 1 }}>
-              <Typography variant="body2" fontWeight={700} sx={{ color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 13 }}>
+              <Typography
+                variant="body2"
+                fontWeight={700}
+                sx={{
+                  color: '#fff',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  fontSize: 13,
+                }}
+              >
                 {user?.firstName} {user?.lastName}
               </Typography>
-              <Chip label={ROLE_LABELS[user?.role]} size="small"
-                sx={{ height: 16, fontSize: 9, fontWeight: 700, bgcolor: 'rgba(255,255,255,0.2)', color: '#fff', '& .MuiChip-label': { px: 0.8 } }} />
+              <Chip
+                label={ROLE_LABELS[user?.role]}
+                size="small"
+                sx={{
+                  height: 16,
+                  fontSize: 9,
+                  fontWeight: 700,
+                  bgcolor: 'rgba(255,255,255,0.2)',
+                  color: '#fff',
+                  '& .MuiChip-label': { px: 0.8 },
+                }}
+              />
             </Box>
           )}
         </Box>
@@ -240,17 +380,31 @@ export default function Sidebar({ open, onToggle, isMobile, onOpenProfile }) {
           <ListItemButton
             onClick={logout}
             sx={{
-              borderRadius: 2, justifyContent: isExpanded ? 'flex-start' : 'center',
-              px: isExpanded ? 1.5 : 'auto', py: 0.8,
-              bgcolor: 'rgba(255,80,80,0.12)', border: '1px solid rgba(255,80,80,0.15)',
+              borderRadius: 2,
+              justifyContent: isExpanded ? 'flex-start' : 'center',
+              px: isExpanded ? 1.5 : 'auto',
+              py: 0.8,
+              bgcolor: 'rgba(255,80,80,0.12)',
+              border: '1px solid rgba(255,80,80,0.15)',
               '&:hover': { bgcolor: 'rgba(255,80,80,0.25)' },
               color: '#FF8A80',
             }}
           >
-            <ListItemIcon sx={{ minWidth: isExpanded ? 32 : 'auto', color: '#FF8A80', '& .MuiSvgIcon-root': { fontSize: 18 } }}>
+            <ListItemIcon
+              sx={{
+                minWidth: isExpanded ? 32 : 'auto',
+                color: '#FF8A80',
+                '& .MuiSvgIcon-root': { fontSize: 18 },
+              }}
+            >
               <Logout />
             </ListItemIcon>
-            {isExpanded && <ListItemText primary="Logout" primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }} />}
+            {isExpanded && (
+              <ListItemText
+                primary="Logout"
+                primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}
+              />
+            )}
           </ListItemButton>
         </Tooltip>
       </Box>

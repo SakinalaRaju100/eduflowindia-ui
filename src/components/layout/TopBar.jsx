@@ -1,11 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import {
-  AppBar, Toolbar, Typography, Box, IconButton, Badge, Avatar, Chip,
-  Menu, MenuItem, Divider, useTheme, Tooltip, FormControl, Select,
+  AppBar,
+  Toolbar,
+  Typography,
+  Box,
+  IconButton,
+  Badge,
+  Avatar,
+  Chip,
+  Menu,
+  MenuItem,
+  Divider,
+  useTheme,
+  Tooltip,
+  FormControl,
+  Select,
 } from '@mui/material';
 import {
-  Notifications, Brightness4, Brightness7, KeyboardArrowDown,
-  Person, Lock, Logout, Menu as MenuIcon,
+  Notifications,
+  Brightness4,
+  Brightness7,
+  KeyboardArrowDown,
+  Person,
+  Lock,
+  Logout,
+  Menu as MenuIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,11 +32,21 @@ import { useQuery } from '@tanstack/react-query';
 import { classroomAPI } from '@/api/client';
 
 const ROLE_COLORS = {
-  superadmin: '#6A1B9A', principal: '#1565C0',
-  teacher: '#2E7D32', student: '#E65100', parent: '#00695C',
+  superadmin: '#6A1B9A',
+  principal: '#1565C0',
+  teacher: '#2E7D32',
+  student: '#E65100',
+  parent: '#00695C',
 };
 
-export default function TopBar({ drawerWidth, pageTitle, onToggleSidebar, isMobile, onYearChange, onOpenProfile }) {
+export default function TopBar({
+  drawerWidth,
+  pageTitle,
+  onToggleSidebar,
+  isMobile,
+  onYearChange,
+  onOpenProfile,
+}) {
   const { user, logout, updatePreferences } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -33,18 +62,22 @@ export default function TopBar({ drawerWidth, pageTitle, onToggleSidebar, isMobi
     // Check if school is populated as an object, otherwise it's just an ID string.
     if (user?.school && typeof user.school === 'object') {
       setSchoolData(user.school);
-      const currentAyObj = user.school.academicYears?.find(ay => ay.isCurrent);
+      const currentAyObj = user.school.academicYears?.find((ay) => ay.isCurrent);
       const currentAy = currentAyObj?.year;
       if (currentAy) {
         setSelectedYear(currentAy);
         if (onYearChange) onYearChange(currentAy, currentAyObj);
       } else if (user.school.currentAcademicYear) {
         setSelectedYear(user.school.currentAcademicYear);
-        const fallbackObj = user.school.academicYears?.find(ay => ay.year === user.school.currentAcademicYear);
+        const fallbackObj = user.school.academicYears?.find(
+          (ay) => ay.year === user.school.currentAcademicYear,
+        );
         if (onYearChange) onYearChange(user.school.currentAcademicYear, fallbackObj);
       }
     } else if (user?.school && typeof user.school === 'string') {
-      console.warn("School is just an ID. Make sure to use .populate('school') in your backend Auth controller!");
+      console.warn(
+        "School is just an ID. Make sure to use .populate('school') in your backend Auth controller!",
+      );
     }
   }, [user]);
 
@@ -56,7 +89,7 @@ export default function TopBar({ drawerWidth, pageTitle, onToggleSidebar, isMobi
   const { data: clsData } = useQuery({
     queryKey: ['my-classrooms', user?.role, targetStudentId],
     queryFn: () => classroomAPI.getAll(),
-    enabled: user?.role === 'student' || (isParent && !!selectedChildId)
+    enabled: user?.role === 'student' || (isParent && !!selectedChildId),
   });
   const allClasses = clsData?.data?.data || [];
 
@@ -64,8 +97,11 @@ export default function TopBar({ drawerWidth, pageTitle, onToggleSidebar, isMobi
     { year: '2022-2023', startDate: '2022-04-01', endDate: '2023-03-31', isCurrent: false },
     { year: '2023-2024', startDate: '2023-04-01', endDate: '2024-03-31', isCurrent: true },
   ];
-  
-  const currentYear = schoolData?.currentAcademicYear || academicYears.find(ay => ay.isCurrent)?.year || '2024-2025';
+
+  const currentYear =
+    schoolData?.currentAcademicYear ||
+    academicYears.find((ay) => ay.isCurrent)?.year ||
+    '2024-2025';
 
   const isYearDropdownDisabled = isParent && !selectedChildId;
   const showYearDropdown = user?.role !== 'superadmin';
@@ -81,14 +117,20 @@ export default function TopBar({ drawerWidth, pageTitle, onToggleSidebar, isMobi
       position="fixed"
       elevation={0}
       sx={{
-        left: drawerWidth, width: `calc(100% - ${drawerWidth}px)`,
-        transition: theme.transitions.create(['left', 'width'], { duration: 250, easing: theme.transitions.easing.sharp }),
+        left: drawerWidth,
+        width: `calc(100% - ${drawerWidth}px)`,
+        transition: theme.transitions.create(['left', 'width'], {
+          duration: 250,
+          easing: theme.transitions.easing.sharp,
+        }),
         bgcolor: theme.palette.background.paper,
         borderBottom: `1px solid ${theme.palette.divider}`,
         color: theme.palette.text.primary,
       }}
     >
-      <Toolbar sx={{ justifyContent: 'space-between', minHeight: '64px !important', px: { xs: 2, sm: 3 } }}>
+      <Toolbar
+        sx={{ justifyContent: 'space-between', minHeight: '64px !important', px: { xs: 2, sm: 3 } }}
+      >
         {/* Page Title */}
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {isMobile && (
@@ -100,9 +142,14 @@ export default function TopBar({ drawerWidth, pageTitle, onToggleSidebar, isMobi
             <Typography variant="h6" fontWeight={700} sx={{ lineHeight: 1 }}>
               {pageTitle || 'Dashboard'}
             </Typography>
-            
+
             <Typography variant="caption" color="text.secondary">
-              {new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              {new Date().toLocaleDateString('en-IN', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
             </Typography>
           </Box>
         </Box>
@@ -124,26 +171,43 @@ export default function TopBar({ drawerWidth, pageTitle, onToggleSidebar, isMobi
                   height: 32,
                   fontSize: 13,
                   fontWeight: 600,
-                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  bgcolor:
+                    theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
                   '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
                   '& .MuiSelect-select': { py: 0.5, px: 1.5, pr: '32px' },
                 }}
               >
-                {(user?.role === 'student' || (isParent && selectedChildId))
+                {user?.role === 'student' || (isParent && selectedChildId)
                   ? allClasses
-                      .filter(c => c.students?.some(s => String(s._id || s) === String(targetStudentId)))
-                      .map(c => {
+                      .filter((c) =>
+                        c.students?.some((s) => String(s._id || s) === String(targetStudentId)),
+                      )
+                      .map((c) => {
                         const ay = c.academicYear || 'Unknown';
                         const cname = c.name || `Grade ${c.grade} - ${c.section}`;
-                        const ayObj = { year: ay, startDate: c.academicStartDate, endDate: c.academicEndDate };
+                        const ayObj = {
+                          year: ay,
+                          startDate: c.academicStartDate,
+                          endDate: c.academicEndDate,
+                        };
                         return (
-                          <MenuItem key={c._id} value={ay} sx={{ fontSize: 13 }} data-ay={JSON.stringify(ayObj)}>
+                          <MenuItem
+                            key={c._id}
+                            value={ay}
+                            sx={{ fontSize: 13 }}
+                            data-ay={JSON.stringify(ayObj)}
+                          >
                             {ay} ({cname})
                           </MenuItem>
                         );
                       })
                   : academicYears.map((ay) => (
-                      <MenuItem key={ay.year} value={ay.year} sx={{ fontSize: 13 }} data-ay={JSON.stringify(ay)}>
+                      <MenuItem
+                        key={ay.year}
+                        value={ay.year}
+                        sx={{ fontSize: 13 }}
+                        data-ay={JSON.stringify(ay)}
+                      >
                         {ay.year} {ay.isCurrent ? '(Current)' : ''}
                       </MenuItem>
                     ))}
@@ -166,15 +230,30 @@ export default function TopBar({ drawerWidth, pageTitle, onToggleSidebar, isMobi
           <Box
             onClick={(e) => setAnchorEl(e.currentTarget)}
             sx={{
-              display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer',
-              px: 1.5, py: 0.8, borderRadius: 2,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              cursor: 'pointer',
+              px: 1.5,
+              py: 0.8,
+              borderRadius: 2,
               border: `1px solid ${theme.palette.divider}`,
               '&:hover': { bgcolor: theme.palette.action.hover },
               transition: 'all 0.15s ease',
             }}
           >
-            <Avatar src={user?.photo} sx={{ width: 30, height: 30, fontSize: 12, fontWeight: 700, bgcolor: ROLE_COLORS[user?.role] }}>
-              {user?.firstName?.[0]}{user?.lastName?.[0]}
+            <Avatar
+              src={user?.photo}
+              sx={{
+                width: 30,
+                height: 30,
+                fontSize: 12,
+                fontWeight: 700,
+                bgcolor: ROLE_COLORS[user?.role],
+              }}
+            >
+              {user?.firstName?.[0]}
+              {user?.lastName?.[0]}
             </Avatar>
             <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
               <Typography variant="body2" fontWeight={600} sx={{ lineHeight: 1 }}>
@@ -183,7 +262,14 @@ export default function TopBar({ drawerWidth, pageTitle, onToggleSidebar, isMobi
               <Chip
                 label={user?.role?.toUpperCase()}
                 size="small"
-                sx={{ height: 14, fontSize: 9, fontWeight: 700, bgcolor: `${ROLE_COLORS[user?.role]}15`, color: ROLE_COLORS[user?.role], '& .MuiChip-label': { px: 0.8 } }}
+                sx={{
+                  height: 14,
+                  fontSize: 9,
+                  fontWeight: 700,
+                  bgcolor: `${ROLE_COLORS[user?.role]}15`,
+                  color: ROLE_COLORS[user?.role],
+                  '& .MuiChip-label': { px: 0.8 },
+                }}
               />
             </Box>
             <KeyboardArrowDown sx={{ fontSize: 16, color: 'text.secondary' }} />
@@ -192,16 +278,36 @@ export default function TopBar({ drawerWidth, pageTitle, onToggleSidebar, isMobi
       </Toolbar>
 
       {/* User Menu */}
-      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}
-        PaperProps={{ sx: { mt: 1, minWidth: 180, borderRadius: 2 } }}>
-        <MenuItem onClick={() => { setAnchorEl(null); onOpenProfile(); }}>
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={() => setAnchorEl(null)}
+        PaperProps={{ sx: { mt: 1, minWidth: 180, borderRadius: 2 } }}
+      >
+        <MenuItem
+          onClick={() => {
+            setAnchorEl(null);
+            onOpenProfile();
+          }}
+        >
           <Person sx={{ mr: 1.5, fontSize: 18 }} /> My Profile
         </MenuItem>
-        <MenuItem onClick={() => { setAnchorEl(null); navigate('/change-password'); }}>
+        <MenuItem
+          onClick={() => {
+            setAnchorEl(null);
+            navigate('/change-password');
+          }}
+        >
           <Lock sx={{ mr: 1.5, fontSize: 18 }} /> Change Password
         </MenuItem>
         <Divider />
-        <MenuItem onClick={() => { setAnchorEl(null); logout(); }} sx={{ color: 'error.main' }}>
+        <MenuItem
+          onClick={() => {
+            setAnchorEl(null);
+            logout();
+          }}
+          sx={{ color: 'error.main' }}
+        >
           <Logout sx={{ mr: 1.5, fontSize: 18 }} /> Logout
         </MenuItem>
       </Menu>

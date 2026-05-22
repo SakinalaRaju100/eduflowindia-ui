@@ -38,7 +38,6 @@ import TeacherLeaves from '@/pages/teacher/Leaves';
 import TeacherMessages from '@/pages/teacher/Messages';
 import TeacherSalaries from './pages/teacher/Salaries';
 
-
 // Student
 import StudentProfile from '@/pages/student/Profile';
 import StudentCalendar from '@/pages/student/Calendar';
@@ -62,9 +61,17 @@ const ROLE_HOME = {
 
 const ProtectedRoute = ({ children, roles }) => {
   const { user, loading } = useAuth();
-  if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
+  if (loading)
+    return (
+      <Box
+        sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}
+      >
+        <CircularProgress />
+      </Box>
+    );
   if (!user) return <Navigate to="/login" replace />;
-  if (roles && !roles.includes(user.role)) return <Navigate to={ROLE_HOME[user.role] || '/login'} replace />;
+  if (roles && !roles.includes(user.role))
+    return <Navigate to={ROLE_HOME[user.role] || '/login'} replace />;
   if (user.isFirstLogin) return <Navigate to="/change-password" replace />;
   return children;
 };
@@ -73,7 +80,14 @@ const RootRedirect = () => {
   const { user, loading } = useAuth();
   const hasTokens = localStorage.getItem('accessToken') && localStorage.getItem('refreshToken');
 
-  if (loading && hasTokens) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
+  if (loading && hasTokens)
+    return (
+      <Box
+        sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}
+      >
+        <CircularProgress />
+      </Box>
+    );
   if (user) return <Navigate to={ROLE_HOME[user.role] || '/login'} replace />;
   return <Navigate to="/login" replace />;
 };
@@ -82,7 +96,14 @@ const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const hasTokens = localStorage.getItem('accessToken') && localStorage.getItem('refreshToken');
 
-  if (loading && hasTokens) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
+  if (loading && hasTokens)
+    return (
+      <Box
+        sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}
+      >
+        <CircularProgress />
+      </Box>
+    );
   if (user) {
     if (user.isFirstLogin) return <Navigate to="/change-password" replace />;
     return <Navigate to={ROLE_HOME[user.role] || '/login'} replace />;
@@ -92,9 +113,9 @@ const PublicRoute = ({ children }) => {
 
 export default function App() {
   const { user } = useAuth();
-  const theme = useMemo(() =>
-    buildTheme(user?.preferences?.themeColor || 'blue', user?.preferences?.theme || 'light'),
-    [user?.preferences?.themeColor, user?.preferences?.theme]
+  const theme = useMemo(
+    () => buildTheme(user?.preferences?.themeColor || 'blue', user?.preferences?.theme || 'light'),
+    [user?.preferences?.themeColor, user?.preferences?.theme],
   );
 
   return (
@@ -102,17 +123,45 @@ export default function App() {
       <CssBaseline />
       <Routes>
         {/* Public */}
-        <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
-        <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <PublicRoute>
+              <ForgotPasswordPage />
+            </PublicRoute>
+          }
+        />
         <Route path="/change-password" element={<ChangePasswordPage />} />
 
         {/* SuperAdmin */}
-        <Route path="/superadmin" element={<ProtectedRoute roles={['superadmin']}><AppShell /></ProtectedRoute>}>
+        <Route
+          path="/superadmin"
+          element={
+            <ProtectedRoute roles={['superadmin']}>
+              <AppShell />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<SADashboard />} />
         </Route>
 
         {/* Principal */}
-        <Route path="/principal" element={<ProtectedRoute roles={['principal']}><AppShell /></ProtectedRoute>}>
+        <Route
+          path="/principal"
+          element={
+            <ProtectedRoute roles={['principal']}>
+              <AppShell />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<PrincipalDashboard />} />
           <Route path="classrooms" element={<PrincipalClassrooms />} />
           <Route path="classrooms/:id" element={<PrincipalClassroomDetail />} />
@@ -129,7 +178,14 @@ export default function App() {
         </Route>
 
         {/* Teacher */}
-        <Route path="/teacher" element={<ProtectedRoute roles={['teacher']}><AppShell /></ProtectedRoute>}>
+        <Route
+          path="/teacher"
+          element={
+            <ProtectedRoute roles={['teacher']}>
+              <AppShell />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<TeacherDashboard />} />
           <Route path="classes" element={<TeacherClasses />} />
           <Route path="classes/:id" element={<TeacherClassroomDetail />} />
@@ -141,7 +197,14 @@ export default function App() {
         </Route>
 
         {/* Student */}
-        <Route path="/student" element={<ProtectedRoute roles={['student']}><AppShell /></ProtectedRoute>}>
+        <Route
+          path="/student"
+          element={
+            <ProtectedRoute roles={['student']}>
+              <AppShell />
+            </ProtectedRoute>
+          }
+        >
           <Route path="profile" element={<StudentProfile />} />
           <Route path="school" element={<SchoolInfo />} />
           <Route path="calendar" element={<StudentCalendar />} />
@@ -152,7 +215,14 @@ export default function App() {
         </Route>
 
         {/* Parent */}
-        <Route path="/parent" element={<ProtectedRoute roles={['parent']}><AppShell /></ProtectedRoute>}>
+        <Route
+          path="/parent"
+          element={
+            <ProtectedRoute roles={['parent']}>
+              <AppShell />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<ParentDashboard />} />
           <Route path="school" element={<SchoolInfo />} />
           <Route path="child/:studentId" element={<Navigate to="profile" replace />} />
@@ -166,11 +236,11 @@ export default function App() {
           <Route path="messages" element={<ParentMessages />} />
         </Route>
 
-      {/* Public School Profile */}
-      <Route path="/:schoolUniqueId" element={<SchoolInfo />} />
+        {/* Public School Profile */}
+        <Route path="/:schoolUniqueId" element={<SchoolInfo />} />
 
-      {/* Root Redirect */}
-      <Route path="/" element={<RootRedirect />} />
+        {/* Root Redirect */}
+        <Route path="/" element={<RootRedirect />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </ThemeProvider>

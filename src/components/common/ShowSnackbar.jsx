@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Snackbar, Alert, Slide } from "@mui/material";
+import React, { useState, useEffect } from 'react';
+import { Snackbar, Alert, Slide } from '@mui/material';
 
 // Slide transition function
 function SlideTransition(props) {
@@ -8,27 +8,27 @@ function SlideTransition(props) {
 
 let globalShowSnackbar = () => {};
 // Exported function that can be imported and called anywhere
-export const showSnackbar = (message, severity = "info") => {
-  console.log("message", message);
+export const showSnackbar = (message, severity = 'info') => {
+  console.log('message', message);
   globalShowSnackbar(message, severity);
 };
 
 const ShowSnackbar = () => {
   const [snackbar, setSnackbar] = useState({
     open: false,
-    message: "",
-    severity: "info",
+    message: '',
+    severity: 'info',
   });
 
   // Bind the global function to the local state updater when the component mounts
   useEffect(() => {
-    globalShowSnackbar = (message, severity = "info") => {
+    globalShowSnackbar = (message, severity = 'info') => {
       setSnackbar({ open: true, message, severity });
     };
   }, []);
 
   const handleCloseSnackbar = (event, reason) => {
-    if (reason === "clickaway") return;
+    if (reason === 'clickaway') return;
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
@@ -37,14 +37,14 @@ const ShowSnackbar = () => {
       open={snackbar.open}
       onClose={handleCloseSnackbar}
       autoHideDuration={3000}
-      anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       TransitionComponent={SlideTransition}
     >
       <Alert
         onClose={handleCloseSnackbar}
         severity={snackbar.severity}
         variant="filled"
-        sx={{ width: "100%" }}
+        sx={{ width: '100%' }}
       >
         {snackbar.message}
       </Alert>

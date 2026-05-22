@@ -68,29 +68,51 @@ export default function AppShell() {
     if (obj) setSelectedAcademicYearObject(obj);
   };
 
-  const drawerWidth = isMobile ? 0 : (sidebarOpen ? FULL_WIDTH : MINI_WIDTH);
+  const drawerWidth = isMobile ? 0 : sidebarOpen ? FULL_WIDTH : MINI_WIDTH;
 
   // Find matching page title
-  const pageTitle = Object.entries(PAGE_TITLES).find(([path]) => {
-    const regexPath = path.replace(/:[^\s/]+/g, '([a-zA-Z0-9_-]+)');
-    if (new RegExp(`^${regexPath}$`).test(location.pathname)) return true;
-    if (location.pathname.includes('/classrooms/') && path === '/principal/classrooms') return true;
-    if (location.pathname.includes('/classes/') && path === '/teacher/classes') return true;
-    return location.pathname === path;
-  })?.[1] || 'EduFlow';
+  const pageTitle =
+    Object.entries(PAGE_TITLES).find(([path]) => {
+      const regexPath = path.replace(/:[^\s/]+/g, '([a-zA-Z0-9_-]+)');
+      if (new RegExp(`^${regexPath}$`).test(location.pathname)) return true;
+      if (location.pathname.includes('/classrooms/') && path === '/principal/classrooms')
+        return true;
+      if (location.pathname.includes('/classes/') && path === '/teacher/classes') return true;
+      return location.pathname === path;
+    })?.[1] || 'EduFlow';
 
   return (
     <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
-      <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen(o => !o)} isMobile={isMobile} onOpenProfile={() => setProfilePopupOpen(true)} />
-      <Box sx={{
-        flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden',
-        ml: 0, transition: 'margin 0.25s ease',
-      }}>
-        <TopBar drawerWidth={drawerWidth} pageTitle={pageTitle} onToggleSidebar={() => setSidebarOpen(o => !o)} isMobile={isMobile} onYearChange={handleYearChange} onOpenProfile={() => setProfilePopupOpen(true)} />
+      <Sidebar
+        open={sidebarOpen}
+        onToggle={() => setSidebarOpen((o) => !o)}
+        isMobile={isMobile}
+        onOpenProfile={() => setProfilePopupOpen(true)}
+      />
+      <Box
+        sx={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          ml: 0,
+          transition: 'margin 0.25s ease',
+        }}
+      >
+        <TopBar
+          drawerWidth={drawerWidth}
+          pageTitle={pageTitle}
+          onToggleSidebar={() => setSidebarOpen((o) => !o)}
+          isMobile={isMobile}
+          onYearChange={handleYearChange}
+          onOpenProfile={() => setProfilePopupOpen(true)}
+        />
         <Box
           component="main"
           sx={{
-            flex: 1, overflowY: 'auto', overflowX: 'hidden',
+            flex: 1,
+            overflowY: 'auto',
+            overflowX: 'hidden',
             mt: '64px',
             p: { xs: 2, sm: 3 },
             bgcolor: 'background.default',
