@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  // baseURL: 'https://eduflowindia-api.vercel.app/api',
-  baseURL: '/api',
+  baseURL: 'https://eduflowindia-api.vercel.app/api',
+  // baseURL: '/api',
   headers: { 'Content-Type': 'application/json' },
   withCredentials: true,
 });
