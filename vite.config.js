@@ -1,12 +1,18 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import path from 'path';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
 
 export default defineConfig({
   plugins: [react()],
-  resolve: { alias: { '@': path.resolve(__dirname, './src') } },
+  resolve: { alias: { "@": path.resolve(__dirname, "./src") } },
   server: {
     port: 5173,
-    proxy: { '/api': { target: 'http://localhost:5001', changeOrigin: true } },
+    proxy: {
+      "/api": {
+        // target: "http://localhost:5001",
+        target: "https://eduflowindia-api.vercel.app",
+        changeOrigin: true,
+      },
+    },
   },
 });
