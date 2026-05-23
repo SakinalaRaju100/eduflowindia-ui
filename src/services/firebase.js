@@ -1,13 +1,13 @@
-import { initializeApp } from "firebase/app";
-import { getMessaging, getToken, onMessage } from "firebase/messaging";
+import { initializeApp } from 'firebase/app';
+import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  apiKey: 'AIzaSyC2fR-iGKA8TsyuNY5co1axyvqrUbQK_18',
+  authDomain: 'rajuproject1-1b60f.firebaseapp.com',
+  projectId: 'rajuproject1-1b60f',
+  storageBucket: 'rajuproject1-1b60f.firebasestorage.app',
+  messagingSenderId: '741892597965',
+  appId: '1:741892597965:web:708d358b5deeb98d08e184',
 };
 
 const app = initializeApp(firebaseConfig);
@@ -18,24 +18,26 @@ const messaging = getMessaging(app);
  * Returns null if permission denied or browser unsupported.
  */
 export async function requestFCMToken() {
-  if (!("Notification" in window)) {
-    console.warn("This browser does not support notifications");
+  console.log('first');
+  if (!('Notification' in window)) {
+    console.warn('This browser does not support notifications');
     return null;
   }
 
   const permission = await Notification.requestPermission();
-  if (permission !== "granted") {
-    console.warn("Notification permission denied");
+  if (permission !== 'granted') {
+    console.warn('Notification permission denied');
     return null;
   }
 
   try {
     const token = await getToken(messaging, {
-      vapidKey: process.env.REACT_APP_FIREBASE_VAPID_KEY,
+      vapidKey:
+        'BH1pzHYIkXDjUNX-9ttxdw60PqjJ9E24vIfKIZ5n_xp-uO3oh3c0Ducm8xjr3yy8tj-F3-qrbIu0cwr3hOUcES0',
     });
     return token;
   } catch (err) {
-    console.error("Error getting FCM token:", err);
+    console.error('Error getting FCM token:', err);
     return null;
   }
 }

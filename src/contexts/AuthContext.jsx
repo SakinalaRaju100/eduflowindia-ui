@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api, { authAPI } from '@/api/client';
 import ShowSnackbar, { showSnackbar } from '@/components/common/ShowSnackbar';
-
+import { requestFCMToken } from '../services/firebase';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -50,6 +50,16 @@ export const AuthProvider = ({ children }) => {
     };
   }, [user]);
 
+  const registerFCM = useCallback(async () => {
+    try {
+      const fcmToken = await requestFCMToken();
+      if (fcmToken) await authAPI.saveFcmToken(fcmToken);
+      console.log('fcmToken', fcmToken);
+    } catch (err) {
+      console.warn('FCM registration failed:', err.message);
+    }
+  }, []);
+
   const login = async (email, password) => {
     const { data } = await authAPI.login({ email, password });
     localStorage.setItem('accessToken', data.data.accessToken);
@@ -57,6 +67,7 @@ export const AuthProvider = ({ children }) => {
     setUser(data.data.user);
     showSnackbar('Logged in successfully!', 'success');
     // window.location.reload();
+    await registerFCM();
     return data.data;
   };
 

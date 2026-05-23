@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
+  // baseURL: 'http://localhost:5001/api',
   baseURL: 'https://eduflowindia-api.vercel.app/api',
   // baseURL: '/api',
   headers: { 'Content-Type': 'application/json' },
@@ -75,6 +76,7 @@ export const authAPI = {
   logout: (refreshToken) => apiClient.post('/auth/logout', { refreshToken }),
   refresh: (refreshToken) => apiClient.post('/auth/refresh', { refreshToken }),
   getMe: () => apiClient.get('/auth/me'),
+  saveFcmToken: (token) => apiClient.post('/auth/fcm-token', { token }),
   changePassword: (data) => apiClient.post('/auth/change-password', data),
   forgotPassword: (email) => apiClient.post('/auth/forgot-password', { email }),
   resetPassword: (data) => apiClient.post('/auth/reset-password', data),

@@ -9,12 +9,12 @@ importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-comp
 // ⚠️  Replace with your actual Firebase config values
 // These must match your .env REACT_APP_FIREBASE_* variables
 firebase.initializeApp({
-  apiKey: 'REACT_APP_FIREBASE_API_KEY',
-  authDomain: 'REACT_APP_FIREBASE_AUTH_DOMAIN',
-  projectId: 'REACT_APP_FIREBASE_PROJECT_ID',
-  storageBucket: 'REACT_APP_FIREBASE_STORAGE_BUCKET',
-  messagingSenderId: 'REACT_APP_FIREBASE_MESSAGING_SENDER_ID',
-  appId: 'REACT_APP_FIREBASE_APP_ID',
+  apiKey: 'AIzaSyC2fR-iGKA8TsyuNY5co1axyvqrUbQK_18',
+  authDomain: 'rajuproject1-1b60f.firebaseapp.com',
+  projectId: 'rajuproject1-1b60f',
+  storageBucket: 'rajuproject1-1b60f.firebasestorage.app',
+  messagingSenderId: '741892597965',
+  appId: '1:741892597965:web:708d358b5deeb98d08e184',
 });
 
 const messaging = firebase.messaging();
