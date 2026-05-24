@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -23,10 +24,9 @@ import {
   LocationOn,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-
 // Mock data for the feeds - update this to fetch real posts from the API
 const FEEDS = [
   {
@@ -307,6 +307,11 @@ export default function HomePage() {
                           position={[school.lat, school.lng]}
                           icon={customIcon}
                         >
+                          <Tooltip direction="bottom" offset={[0, 18]} permanent>
+                            <Typography variant="caption" fontWeight={700}>
+                              {school.name}
+                            </Typography>
+                          </Tooltip>
                           <Popup>
                             <Typography
                               variant="subtitle2"

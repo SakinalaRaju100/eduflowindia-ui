@@ -76,7 +76,7 @@ export default function SchoolInfo() {
   const DUMMY_POSTS = [
     {
       id: 1,
-      image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=600&q=80',
+      image: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=600&q=80',
       likes: 342,
       comments: 45,
     },
