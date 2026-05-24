@@ -15,6 +15,8 @@ import {
   useTheme,
   Divider,
   Button,
+  Dialog,
+  Slide,
 } from '@mui/material';
 import {
   FavoriteBorder,
@@ -22,6 +24,7 @@ import {
   Share,
   MoreVert,
   LocationOn,
+  Close,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Tooltip } from 'react-leaflet';
@@ -141,11 +144,16 @@ function ChangeView({ center }) {
   return null;
 }
 
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
+
 export default function HomePage() {
   const theme = useTheme();
   const navigate = useNavigate();
   const [userLoc, setUserLoc] = useState(null);
   const [schools, setSchools] = useState([]);
+  const [mobileMapOpen, setMobileMapOpen] = useState(false);
 
   useEffect(() => {
     const setFallback = () => {
@@ -163,15 +171,144 @@ export default function HomePage() {
     }
   }, []);
 
+  const renderMapContent = () =>
+    userLoc ? (
+      <MapContainer
+        center={[userLoc.lat, userLoc.lng]}
+        zoom={14}
+        style={{ height: '100%', width: '100%', zIndex: 1 }}
+      >
+        <ChangeView center={[userLoc.lat, userLoc.lng]} />
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        />
+        <Marker position={[userLoc.lat, userLoc.lng]} icon={userIcon}>
+          <Popup>
+            <strong>You are here</strong>
+          </Popup>
+        </Marker>
+        {schools.map((school) => (
+          <Marker key={school.id} position={[school.lat, school.lng]} icon={customIcon}>
+            <Tooltip direction="bottom" offset={[0, 18]} permanent>
+              <Typography variant="caption" fontWeight={700} sx={{ fontSize: 10 }}>
+                {school.name}
+              </Typography>
+            </Tooltip>
+            <Popup>
+              <Typography
+                variant="subtitle2"
+                fontWeight={700}
+                onClick={() => {
+                  setMobileMapOpen(false);
+                  navigate(`/${school.uniqueId}`);
+                }}
+                sx={{
+                  cursor: 'pointer',
+                  color: 'primary.main',
+                  '&:hover': { textDecoration: 'underline' },
+                }}
+              >
+                {school.name}
+              </Typography>
+              <Typography variant="body2">{school.address}</Typography>
+              <Typography variant="body2" color="primary" sx={{ mt: 0.5 }}>
+                Distance: {getDistance(userLoc.lat, userLoc.lng, school.lat, school.lng)} km
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                <Button
+                  variant="contained"
+                  size="small"
+                  fullWidth
+                  onClick={() => {
+                    setMobileMapOpen(false);
+                    navigate(`/${school.uniqueId}`);
+                  }}
+                  sx={{ textTransform: 'none', py: 0.2, px: 1 }}
+                >
+                  Profile
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  fullWidth
+                  sx={{ textTransform: 'none', py: 0.2, px: 1 }}
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${school.lat},${school.lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Map
+                </Button>
+              </Box>
+            </Popup>
+          </Marker>
+        ))}
+      </MapContainer>
+    ) : (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100%',
+        }}
+      >
+        <Typography color="text.secondary">Fetching location...</Typography>
+      </Box>
+    );
+
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pt: 1, pb: 1 }}>
       <Container maxWidth="xl">
         <Grid container spacing={4}>
           {/* Feeds Section (Left) */}
           <Grid item xs={12} md={7} lg={8}>
-            <Typography variant="h5" fontWeight={800} sx={{ mb: 3, px: 1 }}>
-              Recent School Activities
-            </Typography>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 1,
+                px: 1,
+              }}
+            >
+              <Typography variant="h5" fontWeight={800} sx={{ fontSize: { xs: 20, md: 24 } }}>
+                Schools Activities
+              </Typography>
+              <Box
+                onClick={() => setMobileMapOpen(true)}
+                sx={{
+                  display: { xs: 'block', md: 'none' },
+                  width: 48,
+                  height: 48,
+                  borderRadius: 0.5,
+                  overflow: 'hidden',
+                  border: `1px solid ${theme.palette.divider}`,
+                  position: 'relative',
+                  cursor: 'pointer',
+                  boxShadow: theme.shadows[1],
+                }}
+              >
+                {userLoc && (
+                  <MapContainer
+                    center={[userLoc.lat, userLoc.lng]}
+                    zoom={11}
+                    zoomControl={false}
+                    dragging={false}
+                    scrollWheelZoom={false}
+                    doubleClickZoom={false}
+                    style={{ width: '100%', height: '100%', zIndex: 1 }}
+                  >
+                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                    <Marker position={[userLoc.lat, userLoc.lng]} icon={userIcon} />
+                  </MapContainer>
+                )}
+                {/* Overlay to catch clicks and prevent internal map interaction */}
+                <Box
+                  sx={{ position: 'absolute', inset: 0, zIndex: 10, bgcolor: 'rgba(0,0,0,0.05)' }}
+                />
+              </Box>
+            </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {FEEDS.map((feed) => (
                 <Card
@@ -258,8 +395,8 @@ export default function HomePage() {
             </Box>
           </Grid>
 
-          {/* Map Section (Right) */}
-          <Grid item xs={12} md={5} lg={4}>
+          {/* Map Section (Right - Hidden on Mobile) */}
+          <Grid item xs={12} md={5} lg={4} sx={{ display: { xs: 'none', md: 'block' } }}>
             <Box
               sx={{
                 position: { md: 'sticky' },
@@ -285,95 +422,73 @@ export default function HomePage() {
                 </Box>
                 <Divider />
                 <Box sx={{ flex: 1, width: '100%', bgcolor: 'action.hover', position: 'relative' }}>
-                  {userLoc ? (
-                    <MapContainer
-                      center={[userLoc.lat, userLoc.lng]}
-                      zoom={13}
-                      style={{ height: '100%', width: '100%', zIndex: 1 }}
-                    >
-                      <ChangeView center={[userLoc.lat, userLoc.lng]} />
-                      <TileLayer
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                      />
-                      <Marker position={[userLoc.lat, userLoc.lng]} icon={userIcon}>
-                        <Popup>
-                          <strong>You are here</strong>
-                        </Popup>
-                      </Marker>
-                      {schools.map((school) => (
-                        <Marker
-                          key={school.id}
-                          position={[school.lat, school.lng]}
-                          icon={customIcon}
-                        >
-                          <Tooltip direction="bottom" offset={[0, 18]} permanent>
-                            <Typography variant="caption" fontWeight={700}>
-                              {school.name}
-                            </Typography>
-                          </Tooltip>
-                          <Popup>
-                            <Typography
-                              variant="subtitle2"
-                              fontWeight={700}
-                              onClick={() => navigate(`/${school.uniqueId}`)}
-                              sx={{
-                                cursor: 'pointer',
-                                color: 'primary.main',
-                                '&:hover': { textDecoration: 'underline' },
-                              }}
-                            >
-                              {school.name}
-                            </Typography>
-                            <Typography variant="body2">{school.address}</Typography>
-                            <Typography variant="body2" color="primary" sx={{ mt: 0.5 }}>
-                              Distance:{' '}
-                              {getDistance(userLoc.lat, userLoc.lng, school.lat, school.lng)} km
-                            </Typography>
-                            <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                              <Button
-                                variant="contained"
-                                size="small"
-                                fullWidth
-                                onClick={() => navigate(`/${school.uniqueId}`)}
-                                sx={{ textTransform: 'none', py: 0.2, px: 1 }}
-                              >
-                                Profile
-                              </Button>
-                              <Button
-                                variant="outlined"
-                                size="small"
-                                fullWidth
-                                sx={{ textTransform: 'none', py: 0.2, px: 1 }}
-                                href={`https://www.google.com/maps/dir/?api=1&destination=${school.lat},${school.lng}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                Map
-                              </Button>
-                            </Box>
-                          </Popup>
-                        </Marker>
-                      ))}
-                    </MapContainer>
-                  ) : (
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        height: '100%',
-                      }}
-                    >
-                      <Typography color="text.secondary">Fetching location...</Typography>
-                    </Box>
-                  )}
+                  {renderMapContent()}
                 </Box>
               </Card>
             </Box>
           </Grid>
         </Grid>
+
+        {/* Footer Links */}
+        <Box
+          sx={{
+            mt: 6,
+            pt: 3,
+            borderTop: `1px solid ${theme.palette.divider}`,
+            display: 'flex',
+            justifyContent: 'center',
+            gap: { xs: 2, sm: 4 },
+            flexWrap: 'wrap',
+          }}
+        >
+          <Button
+            onClick={() => navigate('/terms-and-conditions')}
+            sx={{ textTransform: 'none', color: 'text.secondary', fontWeight: 600 }}
+          >
+            Terms and Conditions
+          </Button>
+          <Button
+            onClick={() => navigate('/privacy-policy')}
+            sx={{ textTransform: 'none', color: 'text.secondary', fontWeight: 600 }}
+          >
+            Privacy Policy
+          </Button>
+          <Button
+            onClick={() => navigate('/refund-policy')}
+            sx={{ textTransform: 'none', color: 'text.secondary', fontWeight: 600 }}
+          >
+            Refund Policy
+          </Button>
+        </Box>
       </Container>
+
+      {/* Mobile Fullscreen Map Dialog */}
+      <Dialog
+        fullScreen
+        open={mobileMapOpen}
+        onClose={() => setMobileMapOpen(false)}
+        TransitionComponent={Transition}
+      >
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <Box
+            sx={{
+              p: 2,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              borderBottom: `1px solid ${theme.palette.divider}`,
+            }}
+          >
+            <IconButton onClick={() => setMobileMapOpen(false)} size="small">
+              <Close />
+            </IconButton>
+            <Typography variant="h6" fontWeight={700}>
+              Discover Schools
+            </Typography>
+          </Box>
+          <Box sx={{ flex: 1, position: 'relative' }}>{renderMapContent()}</Box>
+        </Box>
+      </Dialog>
     </Box>
   );
 }

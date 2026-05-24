@@ -51,6 +51,9 @@ import ParentDashboard from '@/pages/parent/Dashboard';
 import ParentMessages from '@/pages/parent/Messages';
 import SchoolInfo from './components/common/SchoolInfo';
 import HomePage from '@/components/layout/HomePage';
+import TermsAndConditions from '@/pages/public/TermsAndConditions';
+import PrivacyPolicy from '@/pages/public/PrivacyPolicy';
+import RefundPolicy from '@/pages/public/RefundPolicy';
 
 const ROLE_HOME = {
   superadmin: '/superadmin',
@@ -231,6 +234,9 @@ export default function App() {
         {/* Home Route */}
         <Route element={<AppShell />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/refund-policy" element={<RefundPolicy />} />
         </Route>
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
