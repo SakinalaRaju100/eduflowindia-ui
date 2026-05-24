@@ -52,7 +52,7 @@ const FULL_WIDTH = 260;
 export default function AppShell() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profilePopupOpen, setProfilePopupOpen] = useState(false);
   const location = useLocation();
   const { user } = useAuth();
@@ -60,7 +60,7 @@ export default function AppShell() {
   const [selectedAcademicYearObject, setSelectedAcademicYearObject] = useState(null);
 
   useEffect(() => {
-    setSidebarOpen(!isMobile);
+    setSidebarOpen(false);
   }, [isMobile]);
 
   const handleYearChange = (year, obj) => {

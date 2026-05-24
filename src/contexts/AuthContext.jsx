@@ -8,6 +8,7 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [localTheme, setLocalTheme] = useState(localStorage.getItem('theme') || 'light');
   const navigate = useNavigate();
 
   const loadUser = useCallback(async () => {
@@ -84,15 +85,25 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updatePreferences = async (prefs) => {
-    await authAPI.updatePreferences(prefs);
-    setUser((prev) => ({
-      ...prev,
-      preferences: { ...prev.preferences, ...prefs },
-    }));
+    if (prefs.theme) {
+      setLocalTheme(prefs.theme);
+      localStorage.setItem('theme', prefs.theme);
+    }
+    if (user) {
+      try {
+        await authAPI.updatePreferences(prefs);
+      } catch (err) {}
+      setUser((prev) => ({
+        ...prev,
+        preferences: { ...prev?.preferences, ...prefs },
+      }));
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, updatePreferences, setUser }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, logout, updatePreferences, setUser, localTheme }}
+    >
       {children}
       <ShowSnackbar />
     </AuthContext.Provider>

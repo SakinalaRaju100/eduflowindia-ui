@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -13,6 +13,7 @@ import {
   Typography,
   useTheme,
   Divider,
+  Button,
 } from '@mui/material';
 import {
   FavoriteBorder,
@@ -21,12 +22,17 @@ import {
   MoreVert,
   LocationOn,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 // Mock data for the feeds - update this to fetch real posts from the API
 const FEEDS = [
   {
     id: 1,
     schoolName: 'Greenwood High School',
+    schoolUniqueId: 'greenwood',
     schoolLogo: 'https://ui-avatars.com/api/?name=Greenwood+High&background=1565C0&color=fff',
     postImage:
       'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=800&q=80',
@@ -39,6 +45,7 @@ const FEEDS = [
   {
     id: 2,
     schoolName: 'Delhi Public School',
+    schoolUniqueId: 'dps',
     schoolLogo: 'https://ui-avatars.com/api/?name=DPS&background=2E7D32&color=fff',
     postImage:
       'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=800&q=80',
@@ -51,6 +58,7 @@ const FEEDS = [
   {
     id: 3,
     schoolName: 'St. Xaviers Academy',
+    schoolUniqueId: 'st-xaviers',
     schoolLogo: 'https://ui-avatars.com/api/?name=St+Xaviers&background=6A1B9A&color=fff',
     postImage:
       'https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=800&q=80',
@@ -62,8 +70,98 @@ const FEEDS = [
   },
 ];
 
+const customIcon = new L.divIcon({
+  className: 'school-custom-marker',
+  html: '<div style="background-color: #4CAF50; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"><img src="https://img.icons8.com/ios-filled/50/ffffff/school.png" style="width: 20px; height: 20px;" /></div>',
+  iconSize: [36, 36],
+  iconAnchor: [18, 18],
+  popupAnchor: [0, -18],
+});
+
+const userIcon = new L.divIcon({
+  className: 'user-location-marker',
+  html: '<div style="background-color: #4285F4; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>',
+  iconSize: [22, 22],
+  iconAnchor: [11, 11],
+  popupAnchor: [0, -11],
+});
+
+const getDummySchools = (lat, lng) => [
+  {
+    id: 1,
+    name: 'Greenwood High School',
+    uniqueId: 'greenwood',
+    lat: lat + 0.01,
+    lng: lng + 0.01,
+    address: 'North Avenue',
+  },
+  {
+    id: 2,
+    name: 'Delhi Public School',
+    uniqueId: 'dps',
+    lat: lat - 0.015,
+    lng: lng + 0.02,
+    address: 'South Park',
+  },
+  {
+    id: 3,
+    name: 'St. Xaviers Academy',
+    uniqueId: 'st-xaviers',
+    lat: lat + 0.02,
+    lng: lng - 0.01,
+    address: 'West End',
+  },
+  {
+    id: 4,
+    name: 'Oakridge International School',
+    uniqueId: 'oakridge',
+    lat: lat - 0.025,
+    lng: lng - 0.015,
+    address: 'East Side',
+  },
+];
+
+const getDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return (R * c).toFixed(1);
+};
+
+function ChangeView({ center }) {
+  const map = useMap();
+  map.setView(center, map.getZoom());
+  return null;
+}
+
 export default function HomePage() {
   const theme = useTheme();
+  const navigate = useNavigate();
+  const [userLoc, setUserLoc] = useState(null);
+  const [schools, setSchools] = useState([]);
+
+  useEffect(() => {
+    const setFallback = () => {
+      setUserLoc({ lat: 17.44, lng: 78.38 });
+      setSchools(getDummySchools(17.44, 78.38));
+    };
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        setUserLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setSchools(getDummySchools(pos.coords.latitude, pos.coords.longitude));
+      }, setFallback);
+    } else {
+      setFallback();
+    }
+  }, []);
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pt: 1, pb: 1 }}>
@@ -86,14 +184,25 @@ export default function HomePage() {
                   }}
                 >
                   <CardHeader
-                    avatar={<Avatar src={feed.schoolLogo} />}
+                    avatar={
+                      <Avatar
+                        src={feed.schoolLogo}
+                        onClick={() => navigate(`/${feed.schoolUniqueId}`)}
+                        sx={{ cursor: 'pointer' }}
+                      />
+                    }
                     action={
                       <IconButton>
                         <MoreVert />
                       </IconButton>
                     }
                     title={
-                      <Typography variant="subtitle1" fontWeight={700}>
+                      <Typography
+                        variant="subtitle1"
+                        fontWeight={700}
+                        onClick={() => navigate(`/${feed.schoolUniqueId}`)}
+                        sx={{ cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+                      >
                         {feed.schoolName}
                       </Typography>
                     }
@@ -122,7 +231,16 @@ export default function HomePage() {
                       {feed.likes} likes
                     </Typography>
                     <Typography variant="body2" color="text.primary">
-                      <Box component="span" fontWeight={700} sx={{ mr: 1 }}>
+                      <Box
+                        component="span"
+                        fontWeight={700}
+                        sx={{
+                          mr: 1,
+                          cursor: 'pointer',
+                          '&:hover': { textDecoration: 'underline' },
+                        }}
+                        onClick={() => navigate(`/${feed.schoolUniqueId}`)}
+                      >
                         {feed.schoolName}
                       </Box>
                       {feed.caption}
@@ -166,18 +284,85 @@ export default function HomePage() {
                   </Typography>
                 </Box>
                 <Divider />
-                <Box sx={{ flex: 1, width: '100%', bgcolor: 'action.hover' }}>
-                  {/* Make sure to replace this embed with an actual implementation or API integration if needed */}
-                  <iframe
-                    title="Google Maps Schools"
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15224.9!2d78.38!3d17.44!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2z!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    allowFullScreen=""
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                  />
+                <Box sx={{ flex: 1, width: '100%', bgcolor: 'action.hover', position: 'relative' }}>
+                  {userLoc ? (
+                    <MapContainer
+                      center={[userLoc.lat, userLoc.lng]}
+                      zoom={13}
+                      style={{ height: '100%', width: '100%', zIndex: 1 }}
+                    >
+                      <ChangeView center={[userLoc.lat, userLoc.lng]} />
+                      <TileLayer
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                      />
+                      <Marker position={[userLoc.lat, userLoc.lng]} icon={userIcon}>
+                        <Popup>
+                          <strong>You are here</strong>
+                        </Popup>
+                      </Marker>
+                      {schools.map((school) => (
+                        <Marker
+                          key={school.id}
+                          position={[school.lat, school.lng]}
+                          icon={customIcon}
+                        >
+                          <Popup>
+                            <Typography
+                              variant="subtitle2"
+                              fontWeight={700}
+                              onClick={() => navigate(`/${school.uniqueId}`)}
+                              sx={{
+                                cursor: 'pointer',
+                                color: 'primary.main',
+                                '&:hover': { textDecoration: 'underline' },
+                              }}
+                            >
+                              {school.name}
+                            </Typography>
+                            <Typography variant="body2">{school.address}</Typography>
+                            <Typography variant="body2" color="primary" sx={{ mt: 0.5 }}>
+                              Distance:{' '}
+                              {getDistance(userLoc.lat, userLoc.lng, school.lat, school.lng)} km
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                              <Button
+                                variant="contained"
+                                size="small"
+                                fullWidth
+                                onClick={() => navigate(`/${school.uniqueId}`)}
+                                sx={{ textTransform: 'none', py: 0.2, px: 1 }}
+                              >
+                                Profile
+                              </Button>
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                fullWidth
+                                sx={{ textTransform: 'none', py: 0.2, px: 1 }}
+                                href={`https://www.google.com/maps/dir/?api=1&destination=${school.lat},${school.lng}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                Map
+                              </Button>
+                            </Box>
+                          </Popup>
+                        </Marker>
+                      ))}
+                    </MapContainer>
+                  ) : (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        height: '100%',
+                      }}
+                    >
+                      <Typography color="text.secondary">Fetching location...</Typography>
+                    </Box>
+                  )}
                 </Box>
               </Card>
             </Box>

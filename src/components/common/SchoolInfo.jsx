@@ -9,6 +9,7 @@ import {
   Container,
   CircularProgress,
   Alert,
+  Divider,
   Button,
 } from '@mui/material';
 import {
@@ -20,6 +21,8 @@ import {
   CheckCircle,
   Star,
   Fingerprint,
+  Favorite,
+  ChatBubble,
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
 import { useParams } from 'react-router-dom';
@@ -69,9 +72,85 @@ export default function SchoolInfo() {
   const storiesToRender =
     school.successStories?.length > 0 ? school.successStories : defaultStories;
 
+  // Dummy data for Instagram-style feeds
+  const DUMMY_POSTS = [
+    {
+      id: 1,
+      image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=600&q=80',
+      likes: 342,
+      comments: 45,
+    },
+    {
+      id: 2,
+      image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&q=80',
+      likes: 512,
+      comments: 89,
+    },
+    {
+      id: 3,
+      image: 'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=600&q=80',
+      likes: 289,
+      comments: 12,
+    },
+    {
+      id: 4,
+      image: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600&q=80',
+      likes: 410,
+      comments: 33,
+    },
+    {
+      id: 5,
+      image: 'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=600&q=80',
+      likes: 198,
+      comments: 8,
+    },
+    {
+      id: 6,
+      image: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=600&q=80',
+      likes: 654,
+      comments: 102,
+    },
+  ];
+
   const content = (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <SchoolBanner propSchool={school} />
+
+      {/* Instagram Style Profile Stats */}
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: { xs: 4, sm: 8 },
+          py: 1,
+          px: 2,
+        }}
+      >
+        <Box sx={{ textAlign: 'center', cursor: 'pointer' }}>
+          <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.2 }}>
+            {school.postsCount || DUMMY_POSTS.length}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Posts
+          </Typography>
+        </Box>
+        <Box sx={{ textAlign: 'center', cursor: 'pointer' }}>
+          <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.2 }}>
+            {school.followersCount?.toLocaleString() || '1,250'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Followers
+          </Typography>
+        </Box>
+        <Box sx={{ textAlign: 'center', cursor: 'pointer' }}>
+          <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.2 }}>
+            {school.followingCount?.toLocaleString() || '45'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Following
+          </Typography>
+        </Box>
+      </Box>
 
       {/* About & Motive */}
       <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
@@ -355,6 +434,72 @@ export default function SchoolInfo() {
                   </Typography>
                 </CardContent>
               </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+
+      {/* Instagram Style Posts Grid */}
+      <Box sx={{ mt: 2 }}>
+        <Divider sx={{ mb: 3 }} />
+        <Typography variant="h6" fontWeight={700} gutterBottom textAlign="center" sx={{ mb: 3 }}>
+          Recent Posts
+        </Typography>
+        <Grid container spacing={1}>
+          {DUMMY_POSTS.map((post) => (
+            <Grid item xs={4} key={post.id}>
+              <Box
+                sx={{
+                  position: 'relative',
+                  paddingTop: '100%', // 1:1 Aspect Ratio (Square)
+                  cursor: 'pointer',
+                  overflow: 'hidden',
+                  '&:hover .overlay': { opacity: 1 },
+                  '&:hover .post-img': { transform: 'scale(1.05)' },
+                }}
+              >
+                <img
+                  className="post-img"
+                  src={post.image}
+                  alt="post"
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    transition: 'transform 0.3s ease',
+                  }}
+                />
+                <Box
+                  className="overlay"
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    bgcolor: 'rgba(0,0,0,0.5)',
+                    opacity: 0,
+                    transition: 'opacity 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 3,
+                    color: 'white',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Favorite fontSize="small" />{' '}
+                    <Typography fontWeight={700}>{post.likes}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <ChatBubble fontSize="small" />{' '}
+                    <Typography fontWeight={700}>{post.comments}</Typography>
+                  </Box>
+                </Box>
+              </Box>
             </Grid>
           ))}
         </Grid>

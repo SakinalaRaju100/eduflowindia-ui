@@ -97,10 +97,14 @@ const PublicRoute = ({ children }) => {
 };
 
 export default function App() {
-  const { user } = useAuth();
+  const { user, localTheme } = useAuth();
   const theme = useMemo(
-    () => buildTheme(user?.preferences?.themeColor || 'blue', user?.preferences?.theme || 'light'),
-    [user?.preferences?.themeColor, user?.preferences?.theme],
+    () =>
+      buildTheme(
+        user?.preferences?.themeColor || 'blue',
+        user?.preferences?.theme || localTheme || 'light',
+      ),
+    [user?.preferences?.themeColor, user?.preferences?.theme, localTheme],
   );
 
   return (
