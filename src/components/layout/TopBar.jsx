@@ -6,6 +6,7 @@ import {
   Box,
   IconButton,
   Badge,
+  Button,
   Avatar,
   Chip,
   Menu,
@@ -104,7 +105,7 @@ export default function TopBar({
     '2024-2025';
 
   const isYearDropdownDisabled = isParent && !selectedChildId;
-  const showYearDropdown = user?.role !== 'superadmin';
+  const showYearDropdown = !!user && user.role !== 'superadmin';
   // const showYearDropdown = user?.role == 'principal';
 
   const toggleMode = () => {
@@ -143,7 +144,12 @@ export default function TopBar({
               {pageTitle || 'Dashboard'}
             </Typography>
 
-            <Typography variant="caption" color="text.secondary">
+            <Typography
+              variant="caption"
+              fontWeight={700}
+              fontSize={{ xs: 9, md: 12 }}
+              color="text.secondary"
+            >
               {new Date().toLocaleDateString('en-IN', {
                 weekday: 'long',
                 year: 'numeric',
@@ -156,7 +162,7 @@ export default function TopBar({
 
         {/* Right Side */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {showYearDropdown && (
+          {showYearDropdown && user && (
             <FormControl size="small" sx={{ minWidth: 130, mr: { xs: 0, sm: 1 } }}>
               <Select
                 value={selectedYear}
@@ -227,53 +233,65 @@ export default function TopBar({
             </Badge>
           </IconButton> */}
 
-          <Box
-            onClick={(e) => setAnchorEl(e.currentTarget)}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              cursor: 'pointer',
-              px: 1.5,
-              py: 0.8,
-              borderRadius: 2,
-              border: `1px solid ${theme.palette.divider}`,
-              '&:hover': { bgcolor: theme.palette.action.hover },
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <Avatar
-              src={user?.photo}
+          {user ? (
+            <Box
+              onClick={(e) => setAnchorEl(e.currentTarget)}
               sx={{
-                width: 30,
-                height: 30,
-                fontSize: 12,
-                fontWeight: 700,
-                bgcolor: ROLE_COLORS[user?.role],
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                cursor: 'pointer',
+                px: 1.5,
+                py: 0.8,
+                borderRadius: 2,
+                border: `1px solid ${theme.palette.divider}`,
+                '&:hover': { bgcolor: theme.palette.action.hover },
+                transition: 'all 0.15s ease',
               }}
             >
-              {user?.firstName?.[0]}
-              {user?.lastName?.[0]}
-            </Avatar>
-            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-              <Typography variant="body2" fontWeight={600} sx={{ lineHeight: 1 }}>
-                {user?.firstName} {user?.lastName}
-              </Typography>
-              <Chip
-                label={user?.role?.toUpperCase()}
-                size="small"
+              <Avatar
+                src={user?.photo}
                 sx={{
-                  height: 14,
-                  fontSize: 9,
+                  width: 30,
+                  height: 30,
+                  fontSize: 12,
                   fontWeight: 700,
-                  bgcolor: `${ROLE_COLORS[user?.role]}15`,
-                  color: ROLE_COLORS[user?.role],
-                  '& .MuiChip-label': { px: 0.8 },
+                  bgcolor: ROLE_COLORS[user?.role],
                 }}
-              />
+              >
+                {user?.firstName?.[0]}
+                {user?.lastName?.[0]}
+              </Avatar>
+              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                <Typography variant="body2" fontWeight={600} sx={{ lineHeight: 1 }}>
+                  {user?.firstName} {user?.lastName}
+                </Typography>
+                <Chip
+                  label={user?.role?.toUpperCase()}
+                  size="small"
+                  sx={{
+                    height: 14,
+                    fontSize: 9,
+                    fontWeight: 700,
+                    bgcolor: `${ROLE_COLORS[user?.role]}15`,
+                    color: ROLE_COLORS[user?.role],
+                    '& .MuiChip-label': { px: 0.8 },
+                  }}
+                />
+              </Box>
+              <KeyboardArrowDown sx={{ fontSize: 16, color: 'text.secondary' }} />
             </Box>
-            <KeyboardArrowDown sx={{ fontSize: 16, color: 'text.secondary' }} />
-          </Box>
+          ) : (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => navigate('/login')}
+              startIcon={<Lock />}
+              sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+            >
+              Login
+            </Button>
+          )}
         </Box>
       </Toolbar>
 

@@ -222,7 +222,7 @@ export default function Sidebar({ open, onToggle, isMobile, onOpenProfile }) {
       </Box>
 
       {/* School name */}
-      {isExpanded && user?.role !== 'superadmin' && (
+      {isExpanded && user && user.role !== 'superadmin' && (
         <Box sx={{ px: 2.5, py: 1.5, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
           <Typography
             variant="caption"
@@ -316,98 +316,100 @@ export default function Sidebar({ open, onToggle, isMobile, onOpenProfile }) {
       </List>
 
       {/* User profile + logout */}
-      <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.1)', p: isExpanded ? 2 : 1 }}>
-        <Box
-          onClick={onOpenProfile}
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.5,
-            mb: isExpanded ? 1.5 : 0,
-            cursor: 'pointer',
-            p: 1,
-            mx: -1,
-            borderRadius: 2,
-            '&:hover': { bgcolor: 'rgba(255,255,255,0.05)' },
-          }}
-        >
-          <Avatar
-            src={user?.photo}
+      {user && (
+        <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.1)', p: isExpanded ? 2 : 1 }}>
+          <Box
+            onClick={onOpenProfile}
             sx={{
-              width: 36,
-              height: 36,
-              fontSize: 14,
-              fontWeight: 700,
-              bgcolor: 'rgba(255,255,255,0.25)',
-              border: '2px solid rgba(255,255,255,0.4)',
-              flexShrink: 0,
-            }}
-          >
-            {user?.firstName?.[0]}
-            {user?.lastName?.[0]}
-          </Avatar>
-          {isExpanded && (
-            <Box sx={{ overflow: 'hidden', flex: 1 }}>
-              <Typography
-                variant="body2"
-                fontWeight={700}
-                sx={{
-                  color: '#fff',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  fontSize: 13,
-                }}
-              >
-                {user?.firstName} {user?.lastName}
-              </Typography>
-              <Chip
-                label={ROLE_LABELS[user?.role]}
-                size="small"
-                sx={{
-                  height: 16,
-                  fontSize: 9,
-                  fontWeight: 700,
-                  bgcolor: 'rgba(255,255,255,0.2)',
-                  color: '#fff',
-                  '& .MuiChip-label': { px: 0.8 },
-                }}
-              />
-            </Box>
-          )}
-        </Box>
-        <Tooltip title="Logout" placement="right">
-          <ListItemButton
-            onClick={logout}
-            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              mb: isExpanded ? 1.5 : 0,
+              cursor: 'pointer',
+              p: 1,
+              mx: -1,
               borderRadius: 2,
-              justifyContent: isExpanded ? 'flex-start' : 'center',
-              px: isExpanded ? 1.5 : 'auto',
-              py: 0.8,
-              bgcolor: 'rgba(255,80,80,0.12)',
-              border: '1px solid rgba(255,80,80,0.15)',
-              '&:hover': { bgcolor: 'rgba(255,80,80,0.25)' },
-              color: '#FF8A80',
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.05)' },
             }}
           >
-            <ListItemIcon
+            <Avatar
+              src={user?.photo}
               sx={{
-                minWidth: isExpanded ? 32 : 'auto',
-                color: '#FF8A80',
-                '& .MuiSvgIcon-root': { fontSize: 18 },
+                width: 36,
+                height: 36,
+                fontSize: 14,
+                fontWeight: 700,
+                bgcolor: 'rgba(255,255,255,0.25)',
+                border: '2px solid rgba(255,255,255,0.4)',
+                flexShrink: 0,
               }}
             >
-              <Logout />
-            </ListItemIcon>
+              {user?.firstName?.[0]}
+              {user?.lastName?.[0]}
+            </Avatar>
             {isExpanded && (
-              <ListItemText
-                primary="Logout"
-                primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}
-              />
+              <Box sx={{ overflow: 'hidden', flex: 1 }}>
+                <Typography
+                  variant="body2"
+                  fontWeight={700}
+                  sx={{
+                    color: '#fff',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    fontSize: 13,
+                  }}
+                >
+                  {user?.firstName} {user?.lastName}
+                </Typography>
+                <Chip
+                  label={ROLE_LABELS[user?.role]}
+                  size="small"
+                  sx={{
+                    height: 16,
+                    fontSize: 9,
+                    fontWeight: 700,
+                    bgcolor: 'rgba(255,255,255,0.2)',
+                    color: '#fff',
+                    '& .MuiChip-label': { px: 0.8 },
+                  }}
+                />
+              </Box>
             )}
-          </ListItemButton>
-        </Tooltip>
-      </Box>
+          </Box>
+          <Tooltip title="Logout" placement="right">
+            <ListItemButton
+              onClick={logout}
+              sx={{
+                borderRadius: 2,
+                justifyContent: isExpanded ? 'flex-start' : 'center',
+                px: isExpanded ? 1.5 : 'auto',
+                py: 0.8,
+                bgcolor: 'rgba(255,80,80,0.12)',
+                border: '1px solid rgba(255,80,80,0.15)',
+                '&:hover': { bgcolor: 'rgba(255,80,80,0.25)' },
+                color: '#FF8A80',
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: isExpanded ? 32 : 'auto',
+                  color: '#FF8A80',
+                  '& .MuiSvgIcon-root': { fontSize: 18 },
+                }}
+              >
+                <Logout />
+              </ListItemIcon>
+              {isExpanded && (
+                <ListItemText
+                  primary="Logout"
+                  primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}
+                />
+              )}
+            </ListItemButton>
+          </Tooltip>
+        </Box>
+      )}
     </Drawer>
   );
 }

@@ -2,11 +2,13 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import api, { authAPI } from '@/api/client';
 import ShowSnackbar, { showSnackbar } from '@/components/common/ShowSnackbar';
 import { requestFCMToken } from '../services/firebase';
+import { useNavigate } from 'react-router-dom';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const loadUser = useCallback(async () => {
     const token = localStorage.getItem('accessToken');
@@ -54,7 +56,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const fcmToken = await requestFCMToken();
       if (fcmToken) await authAPI.saveFcmToken(fcmToken);
-      console.log('fcmToken', fcmToken);
+      // console.log('fcmToken', fcmToken);
     } catch (err) {
       console.warn('FCM registration failed:', err.message);
     }
@@ -78,6 +80,7 @@ export const AuthProvider = ({ children }) => {
     showSnackbar('Logged out successfully!', 'success');
     localStorage.clear();
     setUser(null);
+    navigate('/');
   };
 
   const updatePreferences = async (prefs) => {

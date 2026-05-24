@@ -114,7 +114,8 @@ export default function AppShell() {
             overflowY: 'auto',
             overflowX: 'hidden',
             mt: '64px',
-            p: { xs: 2, sm: 3 },
+            p: { xs: 0, md: 1 },
+            // p: 0,
             bgcolor: 'background.default',
           }}
         >

@@ -50,6 +50,7 @@ import StudentMessages from '@/pages/student/Messages';
 import ParentDashboard from '@/pages/parent/Dashboard';
 import ParentMessages from '@/pages/parent/Messages';
 import SchoolInfo from './components/common/SchoolInfo';
+import HomePage from '@/components/layout/HomePage';
 
 const ROLE_HOME = {
   superadmin: '/superadmin',
@@ -74,22 +75,6 @@ const ProtectedRoute = ({ children, roles }) => {
     return <Navigate to={ROLE_HOME[user.role] || '/login'} replace />;
   if (user.isFirstLogin) return <Navigate to="/change-password" replace />;
   return children;
-};
-
-const RootRedirect = () => {
-  const { user, loading } = useAuth();
-  const hasTokens = localStorage.getItem('accessToken') && localStorage.getItem('refreshToken');
-
-  if (loading && hasTokens)
-    return (
-      <Box
-        sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  if (user) return <Navigate to={ROLE_HOME[user.role] || '/login'} replace />;
-  return <Navigate to="/login" replace />;
 };
 
 const PublicRoute = ({ children }) => {
@@ -239,8 +224,10 @@ export default function App() {
         {/* Public School Profile */}
         <Route path="/:schoolUniqueId" element={<SchoolInfo />} />
 
-        {/* Root Redirect */}
-        <Route path="/" element={<RootRedirect />} />
+        {/* Home Route */}
+        <Route element={<AppShell />}>
+          <Route path="/" element={<HomePage />} />
+        </Route>
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </ThemeProvider>

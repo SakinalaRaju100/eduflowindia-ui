@@ -15,7 +15,7 @@ import {
   Divider,
   useTheme,
 } from '@mui/material';
-import { Visibility, VisibilityOff, School, Email, Lock } from '@mui/icons-material';
+import { Visibility, VisibilityOff, School, Email, Lock, ArrowBack } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
 const ROLE_HOME = {
   superadmin: '/superadmin',
@@ -151,6 +151,13 @@ export default function LoginPage() {
         }}
       >
         <Box sx={{ width: '100%', maxWidth: 420 }}>
+          <Button
+            startIcon={<ArrowBack />}
+            onClick={() => navigate('/')}
+            sx={{ mb: 2, color: 'text.secondary', textTransform: 'none' }}
+          >
+            Back to Home
+          </Button>
           <Box sx={{ mb: 4, textAlign: 'center' }}>
             <Typography variant="h4" fontWeight={800} gutterBottom>
               Welcome Back

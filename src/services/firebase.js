@@ -18,7 +18,6 @@ const messaging = getMessaging(app);
  * Returns null if permission denied or browser unsupported.
  */
 export async function requestFCMToken() {
-  console.log('first');
   if (!('Notification' in window)) {
     console.warn('This browser does not support notifications');
     return null;
