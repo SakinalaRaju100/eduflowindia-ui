@@ -11,11 +11,13 @@ import {
   CardActions,
   Avatar,
   IconButton,
+  TextField,
   Typography,
   useTheme,
   Divider,
   Button,
   Dialog,
+  Drawer,
   Slide,
 } from '@mui/material';
 import {
@@ -30,6 +32,8 @@ import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { showSnackbar } from '@/components/common/ShowSnackbar';
+
 // Mock data for the feeds - update this to fetch real posts from the API
 const FEEDS = [
   {
@@ -154,6 +158,26 @@ export default function HomePage() {
   const [userLoc, setUserLoc] = useState(null);
   const [schools, setSchools] = useState([]);
   const [mobileMapOpen, setMobileMapOpen] = useState(false);
+  const [commentsDrawerOpen, setCommentsDrawerOpen] = useState(false);
+  const [selectedFeedId, setSelectedFeedId] = useState(null);
+
+  const handleShare = async (feed) => {
+    const url = `${window.location.origin}/${feed.schoolUniqueId}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: feed.schoolName,
+          text: feed.caption,
+          url: url,
+        });
+      } catch (error) {
+        console.log('Error sharing', error);
+      }
+    } else {
+      navigator.clipboard.writeText(url);
+      showSnackbar('Link copied to clipboard!', 'success');
+    }
+  };
 
   useEffect(() => {
     const setFallback = () => {
@@ -259,8 +283,8 @@ export default function HomePage() {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pt: 1, pb: 1 }}>
-      <Container maxWidth="xl">
-        <Grid container spacing={4}>
+      <Container maxWidth="xl" disableGutters sx={{ px: '6px' }}>
+        <Grid container spacing={{ xs: 1.5, md: 4 }}>
           {/* Feeds Section (Left) */}
           <Grid item xs={12} md={7} lg={8}>
             <Box
@@ -309,14 +333,14 @@ export default function HomePage() {
                 />
               </Box>
             </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {FEEDS.map((feed) => (
                 <Card
                   key={feed.id}
                   elevation={0}
                   sx={{
                     border: `1px solid ${theme.palette.divider}`,
-                    borderRadius: 3,
+                    borderRadius: 0.8,
                     overflow: 'hidden',
                   }}
                 >
@@ -347,26 +371,47 @@ export default function HomePage() {
                   />
                   <CardMedia
                     component="img"
-                    height="500"
                     image={feed.postImage}
                     alt="Post image"
-                    sx={{ objectFit: 'cover' }}
+                    sx={{
+                      width: '100%',
+                      height: { xs: 300, sm: 400, lg: 500 },
+                      objectFit: 'cover',
+                    }}
                   />
-                  <CardActions disableSpacing sx={{ px: 2, pt: 2 }}>
-                    <IconButton aria-label="add to favorites">
-                      <FavoriteBorder />
-                    </IconButton>
-                    <IconButton aria-label="comment">
-                      <ChatBubbleOutline />
-                    </IconButton>
-                    <IconButton aria-label="share">
+                  <CardActions disableSpacing sx={{ px: 2, pt: 1.5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mr: 3 }}>
+                      <IconButton aria-label="add to favorites" color="success" sx={{ mr: 0.5 }}>
+                        <FavoriteBorder />
+                      </IconButton>
+                      <Typography variant="body2" fontWeight={700} color="success.main">
+                        {feed.likes}
+                      </Typography>
+                    </Box>
+                    <Box
+                      sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+                      onClick={() => {
+                        setSelectedFeedId(feed.id);
+                        setCommentsDrawerOpen(true);
+                      }}
+                    >
+                      <IconButton aria-label="comment" color="primary" sx={{ mr: 0.5 }}>
+                        <ChatBubbleOutline />
+                      </IconButton>
+                      <Typography variant="body2" fontWeight={700} color="primary.main">
+                        {feed.comments}
+                      </Typography>
+                    </Box>
+                    <IconButton
+                      aria-label="share"
+                      color="warning"
+                      sx={{ ml: 'auto' }}
+                      onClick={() => handleShare(feed)}
+                    >
                       <Share />
                     </IconButton>
                   </CardActions>
                   <CardContent sx={{ px: 2, pt: 0, pb: '16px !important' }}>
-                    <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 0.5 }}>
-                      {feed.likes} likes
-                    </Typography>
                     <Typography variant="body2" color="text.primary">
                       <Box
                         component="span"
@@ -381,13 +426,6 @@ export default function HomePage() {
                         {feed.schoolName}
                       </Box>
                       {feed.caption}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mt: 1, cursor: 'pointer' }}
-                    >
-                      View all {feed.comments} comments
                     </Typography>
                   </CardContent>
                 </Card>
@@ -489,6 +527,85 @@ export default function HomePage() {
           <Box sx={{ flex: 1, position: 'relative' }}>{renderMapContent()}</Box>
         </Box>
       </Dialog>
+
+      {/* Comments Drawer */}
+      <Drawer
+        anchor="bottom"
+        open={commentsDrawerOpen}
+        onClose={() => setCommentsDrawerOpen(false)}
+        PaperProps={{
+          sx: {
+            borderTopLeftRadius: 16,
+            borderTopRightRadius: 16,
+            height: '70vh',
+            maxWidth: 600,
+            mx: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+          },
+        }}
+      >
+        <Box
+          sx={{
+            p: 2,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderBottom: `1px solid ${theme.palette.divider}`,
+          }}
+        >
+          <Typography variant="h6" fontWeight={700}>
+            Comments
+          </Typography>
+          <IconButton onClick={() => setCommentsDrawerOpen(false)} size="small">
+            <Close />
+          </IconButton>
+        </Box>
+        <Box sx={{ p: 2, overflowY: 'auto', flex: 1 }}>
+          {[1, 2, 3, 4, 5].map((c) => (
+            <Box key={c} sx={{ display: 'flex', gap: 1.5, mb: 2 }}>
+              <Avatar sx={{ width: 36, height: 36, bgcolor: 'primary.main', fontSize: 14 }}>
+                U{c}
+              </Avatar>
+              <Box>
+                <Typography variant="subtitle2" fontWeight={700}>
+                  User {c}
+                </Typography>
+                <Typography variant="body2" sx={{ mt: 0.5 }}>
+                  This is a great post! So proud of the school and the students.
+                </Typography>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 0.5, display: 'block' }}
+                >
+                  {c} hours ago
+                </Typography>
+              </Box>
+            </Box>
+          ))}
+        </Box>
+        <Box
+          sx={{
+            p: 2,
+            borderTop: `1px solid ${theme.palette.divider}`,
+            display: 'flex',
+            gap: 1,
+            alignItems: 'center',
+          }}
+        >
+          <TextField
+            size="small"
+            fullWidth
+            placeholder="Add a comment..."
+            variant="outlined"
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
+          />
+          <Button variant="contained" sx={{ borderRadius: 3, textTransform: 'none', px: 3 }}>
+            Post
+          </Button>
+        </Box>
+      </Drawer>
     </Box>
   );
 }
