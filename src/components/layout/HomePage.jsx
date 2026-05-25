@@ -42,7 +42,7 @@ const FEEDS = [
   {
     id: 1,
     schoolName: 'Greenwood High School',
-    schoolUniqueId: 'greenwood',
+    institutionUniqueId: 'greenwood',
     schoolLogo: 'https://ui-avatars.com/api/?name=Greenwood+High&background=1565C0&color=fff',
     postImage:
       'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=800&q=80',
@@ -55,7 +55,7 @@ const FEEDS = [
   {
     id: 2,
     schoolName: 'Delhi Public School',
-    schoolUniqueId: 'dps',
+    institutionUniqueId: 'dps',
     schoolLogo: 'https://ui-avatars.com/api/?name=DPS&background=2E7D32&color=fff',
     postImage:
       'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=800&q=80',
@@ -68,7 +68,7 @@ const FEEDS = [
   {
     id: 3,
     schoolName: 'St. Xaviers Academy',
-    schoolUniqueId: 'st-xaviers',
+    institutionUniqueId: 'st-xaviers',
     schoolLogo: 'https://ui-avatars.com/api/?name=St+Xaviers&background=6A1B9A&color=fff',
     postImage:
       'https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=800&q=80',
@@ -84,7 +84,7 @@ const CAREERS = [
   {
     id: 1,
     schoolName: 'Greenwood High School',
-    schoolUniqueId: 'greenwood',
+    institutionUniqueId: 'greenwood',
     schoolLogo: 'https://ui-avatars.com/api/?name=Greenwood+High&background=1565C0&color=fff',
     title: 'Mathematics Teacher (Senior Secondary)',
     type: 'Full-time',
@@ -96,7 +96,7 @@ const CAREERS = [
   {
     id: 2,
     schoolName: 'Delhi Public School',
-    schoolUniqueId: 'dps',
+    institutionUniqueId: 'dps',
     schoolLogo: 'https://ui-avatars.com/api/?name=DPS&background=2E7D32&color=fff',
     title: 'Primary School Coordinator',
     type: 'Full-time',
@@ -193,7 +193,7 @@ export default function HomePage() {
   const [activeTab, setActiveTab] = useState(0);
 
   const handleShare = async (feed) => {
-    const url = `${window.location.origin}/${feed.schoolUniqueId}`;
+    const url = `${window.location.origin}/${feed.institutionUniqueId}`;
     if (navigator.share) {
       try {
         await navigator.share({
@@ -395,7 +395,7 @@ export default function HomePage() {
                       avatar={
                         <Avatar
                           src={feed.schoolLogo}
-                          onClick={() => navigate(`/${feed.schoolUniqueId}`)}
+                          onClick={() => navigate(`/${feed.institutionUniqueId}`)}
                           sx={{ cursor: 'pointer' }}
                         />
                       }
@@ -408,7 +408,7 @@ export default function HomePage() {
                         <Typography
                           variant="subtitle1"
                           fontWeight={700}
-                          onClick={() => navigate(`/${feed.schoolUniqueId}`)}
+                          onClick={() => navigate(`/${feed.institutionUniqueId}`)}
                           sx={{ cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
                         >
                           {feed.schoolName}
@@ -468,7 +468,7 @@ export default function HomePage() {
                             cursor: 'pointer',
                             '&:hover': { textDecoration: 'underline' },
                           }}
-                          onClick={() => navigate(`/${feed.schoolUniqueId}`)}
+                          onClick={() => navigate(`/${feed.institutionUniqueId}`)}
                         >
                           {feed.schoolName}
                         </Box>
@@ -493,7 +493,7 @@ export default function HomePage() {
                       avatar={
                         <Avatar
                           src={job.schoolLogo}
-                          onClick={() => navigate(`/${job.schoolUniqueId}`)}
+                          onClick={() => navigate(`/${job.institutionUniqueId}`)}
                           sx={{ cursor: 'pointer' }}
                         />
                       }
@@ -501,7 +501,7 @@ export default function HomePage() {
                         <Typography
                           variant="subtitle1"
                           fontWeight={700}
-                          onClick={() => navigate(`/${job.schoolUniqueId}`)}
+                          onClick={() => navigate(`/${job.institutionUniqueId}`)}
                           sx={{ cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
                         >
                           {job.title}

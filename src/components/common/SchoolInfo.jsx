@@ -47,16 +47,17 @@ import { showSnackbar } from '@/components/common/ShowSnackbar';
 
 export default function SchoolInfo() {
   const { user } = useAuth();
-  const { schoolUniqueId } = useParams();
+  const { institutionUniqueId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
 
   const isPrincipalView = user?.role === 'principal' && location.pathname === '/principal/profile';
 
   const { data: publicSchoolData, isLoading } = useQuery({
-    queryKey: ['public-school', schoolUniqueId],
-    queryFn: () => api.get(`/auth/schools/unique/${schoolUniqueId}`).then((res) => res.data.data),
-    enabled: !!schoolUniqueId,
+    queryKey: ['public-school', institutionUniqueId],
+    queryFn: () =>
+      api.get(`/auth/schools/unique/${institutionUniqueId}`).then((res) => res.data.data),
+    enabled: !!institutionUniqueId,
     retry: false,
   });
 
@@ -237,13 +238,13 @@ export default function SchoolInfo() {
     }
   };
 
-  const school = schoolUniqueId
+  const school = institutionUniqueId
     ? publicSchoolData
     : user?.school && typeof user.school === 'object'
       ? user.school
       : null;
 
-  if (isLoading && schoolUniqueId)
+  if (isLoading && institutionUniqueId)
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
         <CircularProgress />
@@ -343,18 +344,18 @@ export default function SchoolInfo() {
             About {school.name}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, mb: 3 }}>
-            {school.aboutSchool ||
-              school.schoolMotive ||
+            {school.aboutInstitute ||
+              school.institutionMotive ||
               'Our motive is to provide a nurturing environment that fosters academic excellence, character building, and holistic development. We believe in empowering students with the knowledge, skills, and values needed to succeed in an ever-changing world.'}
           </Typography>
 
-          {school.schoolMotive && school.aboutSchool && (
+          {school.institutionMotive && school.aboutInstitute && (
             <>
               <Typography variant="subtitle2" fontWeight={700} gutterBottom>
                 Our Motive
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, mb: 3 }}>
-                {school.schoolMotive}
+                {school.institutionMotive}
               </Typography>
             </>
           )}
@@ -388,7 +389,7 @@ export default function SchoolInfo() {
       </Card>
 
       {/* Admissions Alert (Shown on public view) */}
-      {schoolUniqueId && (
+      {institutionUniqueId && (
         <Alert
           severity="info"
           sx={{
@@ -558,7 +559,7 @@ export default function SchoolInfo() {
                       School Unique ID
                     </Typography>
                     <Typography variant="body2" fontWeight={600}>
-                      {school.schoolUniqueId || 'Not available'}
+                      {school.institutionUniqueId || 'Not available'}
                     </Typography>
                   </Box>
                 </Box>
@@ -1126,7 +1127,7 @@ export default function SchoolInfo() {
     </Box>
   );
 
-  if (schoolUniqueId) {
+  if (institutionUniqueId) {
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', py: { xs: 4, md: 8 } }}>
         <Container maxWidth="lg">{content}</Container>

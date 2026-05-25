@@ -230,7 +230,7 @@ export default function App() {
         </Route>
 
         {/* Public School Profile */}
-        <Route path="/:schoolUniqueId" element={<SchoolInfo />} />
+        <Route path="/:institutionUniqueId" element={<SchoolInfo />} />
 
         {/* Home Route */}
         <Route element={<AppShell />}>

@@ -19,6 +19,7 @@ import {
   DialogActions,
   Slider,
   Rating,
+  Alert,
 } from '@mui/material';
 import { PhotoCamera, Delete, Close, Add, LocationOn, QrCode2 } from '@mui/icons-material';
 import api from '@/api/client';
@@ -57,33 +58,46 @@ async function getCroppedImg(imageSrc, pixelCrop) {
   return canvas.toDataURL('image/jpeg');
 }
 
-export default function SchoolForm({ initialData = {}, onSubmit, isSubmitting = false }) {
-  const [form, setForm] = useState({
-    institutionType: 'School',
-    institutionSector: '',
-    schoolUniqueId: '',
-    name: '',
-    email: '',
-    phone: '',
-    website: '',
-    affiliationBoard: 'CBSE',
-    affiliationNumber: '',
-    address: { street: '', city: '', state: '', country: 'India', pincode: '' },
-    location: { lat: '', lng: '' },
-    logo: null,
-    images: [],
-    aboutSchool: '',
-    schoolMotive: '',
-    keypoints: '',
-    successStories: [],
-    paymentDetails: {
-      bankAccountNumber: '',
-      ifscCode: '',
-      upiNumber: '',
-      upiQrCode: null,
-    },
-  });
+const DEFAULT_FORM = {
+  institutionType: 'School',
+  institutionSector: 'private',
+  institutionUniqueId: '',
+  institutionUniqueIdEdited: false,
+  name: '',
+  email: '',
+  phone: '',
+  website: '',
+  affiliationBoard: 'CBSE',
+  affiliationNumber: '',
+  address: { street: '', city: '', state: '', country: 'India', pincode: '' },
+  location: { lat: '', lng: '' },
+  logo: null,
+  images: [],
+  aboutInstitute: '',
+  institutionMotive: '',
+  keypoints: '',
+  successStories: [],
+  paymentDetails: {
+    bankAccountNumber: '',
+    ifscCode: '',
+    upiNumber: '',
+    upiId: '',
+    upiQrCode: null,
+  },
+  principalFirstName: '',
+  principalLastName: '',
+  principalEmail: '',
+  principalPhone: '',
+};
 
+export default function SchoolForm({
+  initialData = {},
+  onSubmit,
+  isSubmitting = false,
+  isNew = false,
+  existingIds = [],
+}) {
+  const [form, setForm] = useState(DEFAULT_FORM);
   const [viewImage, setViewImage] = useState(null);
   const [cropOpen, setCropOpen] = useState(false);
   const [cropImage, setCropImage] = useState(null);
@@ -97,10 +111,13 @@ export default function SchoolForm({ initialData = {}, onSubmit, isSubmitting = 
 
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
+      const pInfo =
+        typeof initialData.principalId === 'object' ? initialData.principalId || {} : {};
       setForm({
-        institutionType: initialData.institutionType || '',
-        institutionSector: initialData.institutionSector || '',
-        schoolUniqueId: initialData.schoolUniqueId || '',
+        ...DEFAULT_FORM,
+        institutionType: initialData.institutionType || 'School',
+        institutionSector: initialData.institutionSector || 'private',
+        institutionUniqueId: initialData.institutionUniqueId || '',
         name: initialData.name || '',
         email: initialData.email || '',
         phone: initialData.phone || '',
@@ -120,8 +137,8 @@ export default function SchoolForm({ initialData = {}, onSubmit, isSubmitting = 
         },
         logo: initialData.logo || null,
         images: initialData.images || [],
-        aboutSchool: initialData.aboutSchool || '',
-        schoolMotive: initialData.schoolMotive || '',
+        aboutInstitute: initialData.aboutInstitute || '',
+        institutionMotive: initialData.institutionMotive || '',
         keypoints: initialData.keypoints || '',
         successStories: initialData.successStories || [],
         paymentDetails: {
@@ -131,17 +148,33 @@ export default function SchoolForm({ initialData = {}, onSubmit, isSubmitting = 
           upiId: initialData.paymentDetails?.upiId || '',
           upiQrCode: initialData.paymentDetails?.upiQrCode || null,
         },
+        principalFirstName: initialData.principalFirstName || pInfo.firstName || '',
+        principalLastName: initialData.principalLastName || pInfo.lastName || '',
+        principalEmail: initialData.principalEmail || pInfo.email || '',
+        principalPhone: initialData.principalPhone || pInfo.phone || '',
       });
+    } else {
+      setForm(DEFAULT_FORM);
     }
   }, [initialData]);
 
   const handleChange = (k, v) => {
     const keys = k.split('.');
-    setForm((p) =>
-      keys.length === 1
-        ? { ...p, [keys[0]]: v }
-        : { ...p, [keys[0]]: { ...p[keys[0]], [keys[1]]: v } },
-    );
+    setForm((p) => {
+      const updated =
+        keys.length === 1
+          ? { ...p, [keys[0]]: v }
+          : { ...p, [keys[0]]: { ...p[keys[0]], [keys[1]]: v } };
+
+      if (k === 'name' && isNew && !p.institutionUniqueIdEdited) {
+        updated.institutionUniqueId = v.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      }
+      if (k === 'institutionUniqueId') {
+        updated.institutionUniqueIdEdited = true;
+        updated.institutionUniqueId = v.toUpperCase();
+      }
+      return updated;
+    });
   };
 
   const handleImageUpload = async (e, type) => {
@@ -298,6 +331,12 @@ export default function SchoolForm({ initialData = {}, onSubmit, isSubmitting = 
     onSubmit(submitData);
   };
 
+  const isIdTaken = Boolean(
+    form.institutionUniqueId &&
+    existingIds.includes(form.institutionUniqueId) &&
+    form.institutionUniqueId !== initialData?.institutionUniqueId,
+  );
+
   return (
     <>
       <Grid container spacing={3}>
@@ -373,23 +412,35 @@ export default function SchoolForm({ initialData = {}, onSubmit, isSubmitting = 
 
             {[
               ['name', 'School Name', 6],
-              ['schoolUniqueId', 'School Unique ID', 6, true],
+              ['institutionUniqueId', 'School Unique ID', 6],
               ['email', 'School Email', 6],
               ['phone', 'Phone', 6],
               ['website', 'Website', 6],
               ['affiliationNumber', 'Affiliation Number', 6],
-            ].map(([k, l, xs, disabled]) => (
-              <Grid item xs={12} sm={xs} key={k}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label={l}
-                  value={form[k] || ''}
-                  onChange={(e) => handleChange(k, e.target.value)}
-                  disabled={disabled}
-                />
-              </Grid>
-            ))}
+            ].map(([k, l, xs]) => {
+              const disabled = k === 'institutionUniqueId' && !isNew;
+              const isError = k === 'institutionUniqueId' && isIdTaken;
+              return (
+                <Grid item xs={12} sm={xs} key={k}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label={l}
+                    value={form[k] || ''}
+                    onChange={(e) => handleChange(k, e.target.value)}
+                    disabled={disabled}
+                    error={isError}
+                    helperText={
+                      isError
+                        ? '❌ This School ID is already taken.'
+                        : k === 'institutionUniqueId' && isNew
+                          ? 'Auto-generated. Must be unique.'
+                          : ''
+                    }
+                  />
+                </Grid>
+              );
+            })}
 
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth size="small">
@@ -453,6 +504,38 @@ export default function SchoolForm({ initialData = {}, onSubmit, isSubmitting = 
             </Grid>
           </Grid>
 
+          {(isNew || form.principalFirstName || form.principalEmail) && (
+            <>
+              <Typography variant="subtitle2" fontWeight={700} sx={{ mt: 3, mb: 2 }}>
+                Principal Account
+              </Typography>
+              <Grid container spacing={2}>
+                {[
+                  ['principalFirstName', 'First Name', 6],
+                  ['principalLastName', 'Last Name', 6],
+                  ['principalEmail', 'Email', 6],
+                  ['principalPhone', 'Phone', 6],
+                ].map(([k, l, xs]) => (
+                  <Grid item xs={12} sm={xs} key={k}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label={l}
+                      value={form[k] || ''}
+                      onChange={(e) => handleChange(k, e.target.value)}
+                      disabled={!isNew}
+                    />
+                  </Grid>
+                ))}
+              </Grid>
+              {isNew && (
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  A temporary password will be emailed to the principal.
+                </Alert>
+              )}
+            </>
+          )}
+
           <Typography variant="subtitle2" fontWeight={700} sx={{ mt: 3, mb: 2 }}>
             School Information
           </Typography>
@@ -464,8 +547,8 @@ export default function SchoolForm({ initialData = {}, onSubmit, isSubmitting = 
                 rows={3}
                 size="small"
                 label="About School"
-                value={form.aboutSchool}
-                onChange={(e) => handleChange('aboutSchool', e.target.value)}
+                value={form.aboutInstitute}
+                onChange={(e) => handleChange('aboutInstitute', e.target.value)}
               />
             </Grid>
             <Grid item xs={12}>
@@ -475,8 +558,8 @@ export default function SchoolForm({ initialData = {}, onSubmit, isSubmitting = 
                 rows={3}
                 size="small"
                 label="School Motive"
-                value={form.schoolMotive}
-                onChange={(e) => handleChange('schoolMotive', e.target.value)}
+                value={form.institutionMotive}
+                onChange={(e) => handleChange('institutionMotive', e.target.value)}
               />
             </Grid>
             <Grid item xs={12}>
@@ -704,7 +787,7 @@ export default function SchoolForm({ initialData = {}, onSubmit, isSubmitting = 
           </Box>
 
           <Box sx={{ mt: 3, textAlign: 'right' }}>
-            <Button variant="contained" onClick={handleSubmit} disabled={isSubmitting}>
+            <Button variant="contained" onClick={handleSubmit} disabled={isSubmitting || isIdTaken}>
               {isSubmitting ? (
                 <CircularProgress size={20} color="inherit" />
               ) : (
