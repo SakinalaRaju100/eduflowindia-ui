@@ -155,6 +155,7 @@ export default function App() {
           }
         >
           <Route index element={<PrincipalDashboard />} />
+          <Route path="profile" element={<SchoolInfo />} />
           <Route path="classrooms" element={<PrincipalClassrooms />} />
           <Route path="classrooms/:id" element={<PrincipalClassroomDetail />} />
           <Route path="students" element={<PrincipalStudents />} />

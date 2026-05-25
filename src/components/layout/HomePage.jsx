@@ -19,6 +19,9 @@ import {
   Dialog,
   Drawer,
   Slide,
+  Tabs,
+  Tab,
+  Chip,
 } from '@mui/material';
 import {
   FavoriteBorder,
@@ -74,6 +77,33 @@ const FEEDS = [
     likes: 289,
     comments: 12,
     time: '1 day ago',
+  },
+];
+
+const CAREERS = [
+  {
+    id: 1,
+    schoolName: 'Greenwood High School',
+    schoolUniqueId: 'greenwood',
+    schoolLogo: 'https://ui-avatars.com/api/?name=Greenwood+High&background=1565C0&color=fff',
+    title: 'Mathematics Teacher (Senior Secondary)',
+    type: 'Full-time',
+    location: 'Hyderabad, Telangana',
+    description:
+      "We are looking for an experienced Mathematics teacher for grades 11 and 12. Must have a master's degree in Mathematics and a B.Ed.",
+    postedAt: '2 days ago',
+  },
+  {
+    id: 2,
+    schoolName: 'Delhi Public School',
+    schoolUniqueId: 'dps',
+    schoolLogo: 'https://ui-avatars.com/api/?name=DPS&background=2E7D32&color=fff',
+    title: 'Primary School Coordinator',
+    type: 'Full-time',
+    location: 'Hyderabad, Telangana',
+    description:
+      'Seeking a dynamic and enthusiastic coordinator for our primary section. Minimum 5 years of teaching experience required.',
+    postedAt: '1 week ago',
   },
 ];
 
@@ -160,6 +190,7 @@ export default function HomePage() {
   const [mobileMapOpen, setMobileMapOpen] = useState(false);
   const [commentsDrawerOpen, setCommentsDrawerOpen] = useState(false);
   const [selectedFeedId, setSelectedFeedId] = useState(null);
+  const [activeTab, setActiveTab] = useState(0);
 
   const handleShare = async (feed) => {
     const url = `${window.location.origin}/${feed.schoolUniqueId}`;
@@ -294,11 +325,26 @@ export default function HomePage() {
                 alignItems: 'center',
                 mb: 1,
                 px: 1,
+                borderBottom: `1px solid ${theme.palette.divider}`,
               }}
             >
-              <Typography variant="h5" fontWeight={800} sx={{ fontSize: { xs: 20, md: 24 } }}>
-                Schools Activities
-              </Typography>
+              <Tabs
+                value={activeTab}
+                onChange={(e, v) => setActiveTab(v)}
+                sx={{
+                  '& .MuiTab-root': {
+                    textTransform: 'none',
+                    fontSize: { xs: 16, md: 20 },
+                    fontWeight: 800,
+                    minWidth: 'auto',
+                    px: 1,
+                    mr: 2,
+                  },
+                }}
+              >
+                <Tab label="Activities" />
+                <Tab label="Careers" />
+              </Tabs>
               <Box
                 onClick={() => setMobileMapOpen(true)}
                 sx={{
@@ -334,102 +380,164 @@ export default function HomePage() {
               </Box>
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {FEEDS.map((feed) => (
-                <Card
-                  key={feed.id}
-                  elevation={0}
-                  sx={{
-                    border: `1px solid ${theme.palette.divider}`,
-                    borderRadius: 0.8,
-                    overflow: 'hidden',
-                  }}
-                >
-                  <CardHeader
-                    avatar={
-                      <Avatar
-                        src={feed.schoolLogo}
-                        onClick={() => navigate(`/${feed.schoolUniqueId}`)}
-                        sx={{ cursor: 'pointer' }}
-                      />
-                    }
-                    action={
-                      <IconButton>
-                        <MoreVert />
-                      </IconButton>
-                    }
-                    title={
-                      <Typography
-                        variant="subtitle1"
-                        fontWeight={700}
-                        onClick={() => navigate(`/${feed.schoolUniqueId}`)}
-                        sx={{ cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
-                      >
-                        {feed.schoolName}
-                      </Typography>
-                    }
-                    subheader={feed.time}
-                  />
-                  <CardMedia
-                    component="img"
-                    image={feed.postImage}
-                    alt="Post image"
+              {activeTab === 0 &&
+                FEEDS.map((feed) => (
+                  <Card
+                    key={feed.id}
+                    elevation={0}
                     sx={{
-                      width: '100%',
-                      height: { xs: 300, sm: 400, lg: 500 },
-                      objectFit: 'cover',
+                      border: `1px solid ${theme.palette.divider}`,
+                      borderRadius: 0.8,
+                      overflow: 'hidden',
                     }}
-                  />
-                  <CardActions disableSpacing sx={{ px: 2, pt: 1.5 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mr: 3 }}>
-                      <IconButton aria-label="add to favorites" color="success" sx={{ mr: 0.5 }}>
-                        <FavoriteBorder />
-                      </IconButton>
-                      <Typography variant="body2" fontWeight={700} color="success.main">
-                        {feed.likes}
-                      </Typography>
-                    </Box>
-                    <Box
-                      sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-                      onClick={() => {
-                        setSelectedFeedId(feed.id);
-                        setCommentsDrawerOpen(true);
+                  >
+                    <CardHeader
+                      avatar={
+                        <Avatar
+                          src={feed.schoolLogo}
+                          onClick={() => navigate(`/${feed.schoolUniqueId}`)}
+                          sx={{ cursor: 'pointer' }}
+                        />
+                      }
+                      action={
+                        <IconButton>
+                          <MoreVert />
+                        </IconButton>
+                      }
+                      title={
+                        <Typography
+                          variant="subtitle1"
+                          fontWeight={700}
+                          onClick={() => navigate(`/${feed.schoolUniqueId}`)}
+                          sx={{ cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+                        >
+                          {feed.schoolName}
+                        </Typography>
+                      }
+                      subheader={feed.time}
+                    />
+                    <CardMedia
+                      component="img"
+                      image={feed.postImage}
+                      alt="Post image"
+                      sx={{
+                        width: '100%',
+                        height: { xs: 300, sm: 400, lg: 500 },
+                        objectFit: 'cover',
                       }}
-                    >
-                      <IconButton aria-label="comment" color="primary" sx={{ mr: 0.5 }}>
-                        <ChatBubbleOutline />
-                      </IconButton>
-                      <Typography variant="body2" fontWeight={700} color="primary.main">
-                        {feed.comments}
-                      </Typography>
-                    </Box>
-                    <IconButton
-                      aria-label="share"
-                      color="warning"
-                      sx={{ ml: 'auto' }}
-                      onClick={() => handleShare(feed)}
-                    >
-                      <Share />
-                    </IconButton>
-                  </CardActions>
-                  <CardContent sx={{ px: 2, pt: 0, pb: '16px !important' }}>
-                    <Typography variant="body2" color="text.primary">
-                      <Box
-                        component="span"
-                        fontWeight={700}
-                        sx={{
-                          mr: 1,
-                          cursor: 'pointer',
-                          '&:hover': { textDecoration: 'underline' },
-                        }}
-                        onClick={() => navigate(`/${feed.schoolUniqueId}`)}
-                      >
-                        {feed.schoolName}
+                    />
+                    <CardActions disableSpacing sx={{ px: 2, pt: 1.5 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mr: 3 }}>
+                        <IconButton aria-label="add to favorites" color="success" sx={{ mr: 0.5 }}>
+                          <FavoriteBorder />
+                        </IconButton>
+                        <Typography variant="body2" fontWeight={700} color="success.main">
+                          {feed.likes}
+                        </Typography>
                       </Box>
-                      {feed.caption}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              ))}
+                      <Box
+                        sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+                        onClick={() => {
+                          setSelectedFeedId(feed.id);
+                          setCommentsDrawerOpen(true);
+                        }}
+                      >
+                        <IconButton aria-label="comment" color="primary" sx={{ mr: 0.5 }}>
+                          <ChatBubbleOutline />
+                        </IconButton>
+                        <Typography variant="body2" fontWeight={700} color="primary.main">
+                          {feed.comments}
+                        </Typography>
+                      </Box>
+                      <IconButton
+                        aria-label="share"
+                        color="warning"
+                        sx={{ ml: 'auto' }}
+                        onClick={() => handleShare(feed)}
+                      >
+                        <Share />
+                      </IconButton>
+                    </CardActions>
+                    <CardContent sx={{ px: 2, pt: 0, pb: '16px !important' }}>
+                      <Typography variant="body2" color="text.primary">
+                        <Box
+                          component="span"
+                          fontWeight={700}
+                          sx={{
+                            mr: 1,
+                            cursor: 'pointer',
+                            '&:hover': { textDecoration: 'underline' },
+                          }}
+                          onClick={() => navigate(`/${feed.schoolUniqueId}`)}
+                        >
+                          {feed.schoolName}
+                        </Box>
+                        {feed.caption}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                ))}
+
+              {activeTab === 1 &&
+                CAREERS.map((job) => (
+                  <Card
+                    key={job.id}
+                    elevation={0}
+                    sx={{
+                      border: `1px solid ${theme.palette.divider}`,
+                      borderRadius: 0.8,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <CardHeader
+                      avatar={
+                        <Avatar
+                          src={job.schoolLogo}
+                          onClick={() => navigate(`/${job.schoolUniqueId}`)}
+                          sx={{ cursor: 'pointer' }}
+                        />
+                      }
+                      title={
+                        <Typography
+                          variant="subtitle1"
+                          fontWeight={700}
+                          onClick={() => navigate(`/${job.schoolUniqueId}`)}
+                          sx={{ cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+                        >
+                          {job.title}
+                        </Typography>
+                      }
+                      subheader={`${job.schoolName} • ${job.postedAt}`}
+                    />
+                    <CardContent sx={{ pt: 0 }}>
+                      <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                        <Chip
+                          label={job.type}
+                          size="small"
+                          color="primary"
+                          sx={{ fontWeight: 600 }}
+                        />
+                        <Chip label={job.location} size="small" sx={{ fontWeight: 600 }} />
+                      </Box>
+                      <Typography variant="body2" color="text.secondary">
+                        {job.description}
+                      </Typography>
+                    </CardContent>
+                    <CardActions sx={{ px: 2, pb: 2 }}>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        disableElevation
+                        sx={{ textTransform: 'none', fontWeight: 600 }}
+                        onClick={() =>
+                          showSnackbar('Application process will be available soon.', 'info')
+                        }
+                      >
+                        Apply Now
+                      </Button>
+                    </CardActions>
+                  </Card>
+                ))}
             </Box>
           </Grid>
 

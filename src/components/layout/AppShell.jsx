@@ -9,6 +9,7 @@ import UserProfilePopup from '@/components/common/UserProfilePopup';
 const PAGE_TITLES = {
   '/superadmin': 'Schools Management',
   '/principal': 'Dashboard',
+  '/principal/profile': 'School Profile',
   '/principal/classrooms': 'Classrooms',
   '/principal/students': 'Students',
   '/principal/teachers': 'Teachers',

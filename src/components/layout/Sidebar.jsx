@@ -49,6 +49,7 @@ const NAV_CONFIG = {
   superadmin: [{ label: 'Schools', icon: <CorporateFare />, path: '/superadmin' }],
   principal: [
     { label: 'Dashboard', icon: <Dashboard />, path: '/principal' },
+    { label: 'School Profile', icon: <CorporateFare />, path: '/principal/profile' },
     { label: 'Classrooms', icon: <Class />, path: '/principal/classrooms' },
     { label: 'Students', icon: <People />, path: '/principal/students' },
     { label: 'Teachers', icon: <Person />, path: '/principal/teachers' },

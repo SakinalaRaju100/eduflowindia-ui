@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -11,6 +11,12 @@ import {
   Alert,
   Divider,
   Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  IconButton,
 } from '@mui/material';
 import {
   Phone,
@@ -23,16 +29,25 @@ import {
   Fingerprint,
   Favorite,
   ChatBubble,
+  Edit,
+  Add,
+  Close,
+  PhotoCamera,
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/api/client';
 import SchoolBanner from '@/components/common/SchoolBanner';
+import { showSnackbar } from '@/components/common/ShowSnackbar';
 
 export default function SchoolInfo() {
   const { user } = useAuth();
   const { schoolUniqueId } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const isPrincipalView = user?.role === 'principal' && location.pathname === '/principal/profile';
 
   const { data: publicSchoolData, isLoading } = useQuery({
     queryKey: ['public-school', schoolUniqueId],
@@ -40,37 +55,6 @@ export default function SchoolInfo() {
     enabled: !!schoolUniqueId,
     retry: false,
   });
-
-  const school = schoolUniqueId
-    ? publicSchoolData
-    : user?.school && typeof user.school === 'object'
-      ? user.school
-      : null;
-
-  if (isLoading && schoolUniqueId)
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
-        <CircularProgress />
-      </Box>
-    );
-  if (!school)
-    return (
-      <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Typography>School information not available.</Typography>
-      </Box>
-    );
-
-  const defaultStories = [
-    { name: 'Aditi Sharma', text: 'Secured All India Rank 15 in JEE Advanced.', color: '#1565C0' },
-    { name: 'Rahul Verma', text: 'Won Gold at the National Science Olympiad.', color: '#2E7D32' },
-    {
-      name: 'Sneha Patel',
-      text: 'Awarded full academic scholarship at MIT, USA.',
-      color: '#E65100',
-    },
-  ];
-  const storiesToRender =
-    school.successStories?.length > 0 ? school.successStories : defaultStories;
 
   // Dummy data for Instagram-style feeds
   const DUMMY_POSTS = [
@@ -112,8 +96,135 @@ export default function SchoolInfo() {
     },
   ];
 
+  const [localPosts, setLocalPosts] = useState(DUMMY_POSTS);
+  const [addPostOpen, setAddPostOpen] = useState(false);
+  const [postForm, setPostForm] = useState({ caption: '', image: null });
+  const [isUploading, setIsUploading] = useState(false);
+
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    let animationId;
+    let isHovered = false;
+
+    const scrollStep = () => {
+      if (!isHovered && el) {
+        el.scrollLeft += 1;
+        // Loop back seamlessly when reaching the end
+        if (el.scrollLeft >= el.scrollWidth - el.clientWidth) {
+          el.scrollLeft = 0;
+        }
+      }
+      animationId = requestAnimationFrame(scrollStep);
+    };
+
+    animationId = requestAnimationFrame(scrollStep);
+
+    const handleMouseEnter = () => (isHovered = true);
+    const handleMouseLeave = () => (isHovered = false);
+
+    el.addEventListener('mouseenter', handleMouseEnter);
+    el.addEventListener('mouseleave', handleMouseLeave);
+    el.addEventListener('touchstart', handleMouseEnter, { passive: true });
+    el.addEventListener('touchend', handleMouseLeave, { passive: true });
+
+    return () => {
+      cancelAnimationFrame(animationId);
+      el.removeEventListener('mouseenter', handleMouseEnter);
+      el.removeEventListener('mouseleave', handleMouseLeave);
+      el.removeEventListener('touchstart', handleMouseEnter);
+      el.removeEventListener('touchend', handleMouseLeave);
+    };
+  }, []);
+
+  const handlePostImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const response = await api.post('/files/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setPostForm((p) => ({ ...p, image: response.data.url }));
+    } catch (error) {
+      console.error('Upload failed', error);
+      showSnackbar('Failed to upload image', 'error');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleAddPost = async () => {
+    try {
+      // Simulate API Call - Append post locally
+      setLocalPosts([
+        {
+          id: Date.now(),
+          image: postForm.image,
+          caption: postForm.caption,
+          likes: 0,
+          comments: 0,
+        },
+        ...localPosts,
+      ]);
+      showSnackbar('Post added successfully!', 'success');
+      setAddPostOpen(false);
+      setPostForm({ caption: '', image: null });
+    } catch (error) {
+      console.error('Failed to add post', error);
+    }
+  };
+
+  const school = schoolUniqueId
+    ? publicSchoolData
+    : user?.school && typeof user.school === 'object'
+      ? user.school
+      : null;
+
+  if (isLoading && schoolUniqueId)
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+        <CircularProgress />
+      </Box>
+    );
+  if (!school)
+    return (
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <Typography>School information not available.</Typography>
+      </Box>
+    );
+
+  const defaultStories = [
+    { name: 'Aditi Sharma', text: 'Secured All India Rank 15 in JEE Advanced.', color: '#1565C0' },
+    { name: 'Rahul Verma', text: 'Won Gold at the National Science Olympiad.', color: '#2E7D32' },
+    {
+      name: 'Sneha Patel',
+      text: 'Awarded full academic scholarship at MIT, USA.',
+      color: '#E65100',
+    },
+  ];
+  const storiesToRender =
+    school.successStories?.length > 0 ? school.successStories : defaultStories;
+
   const content = (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {isPrincipalView && (
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: -1 }}>
+          <Button
+            variant="contained"
+            startIcon={<Edit />}
+            onClick={() => navigate('/principal/settings')}
+            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, zIndex: 1, m: 1 }}
+          >
+            Edit Profile
+          </Button>
+        </Box>
+      )}
       <SchoolBanner propSchool={school} />
 
       {/* Instagram Style Profile Stats */}
@@ -128,7 +239,7 @@ export default function SchoolInfo() {
       >
         <Box sx={{ textAlign: 'center', cursor: 'pointer' }}>
           <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.2 }}>
-            {school.postsCount || DUMMY_POSTS.length}
+            {school.postsCount || localPosts.length}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Posts
@@ -377,6 +488,18 @@ export default function SchoolInfo() {
                       {school.address?.state ? `${school.address.state}` : 'Not provided'}
                       {school.address?.pincode ? ` - ${school.address.pincode}` : ''}
                     </Typography>
+                    {school.location?.lat && school.location?.lng && (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        sx={{ mt: 1, textTransform: 'none', py: 0.2, px: 1, fontSize: 11 }}
+                        href={`https://www.google.com/maps/search/?api=1&query=${school.location.lat},${school.location.lng}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        View on Google Maps
+                      </Button>
+                    )}
                   </Box>
                 </Box>
               </Box>
@@ -390,15 +513,25 @@ export default function SchoolInfo() {
         <Typography variant="h6" fontWeight={700} gutterBottom>
           Student Success Stories
         </Typography>
-        <Grid container spacing={3}>
-          {storiesToRender.map((story, i) => (
-            <Grid item xs={12} sm={4} key={i}>
+        <Box
+          ref={scrollRef}
+          sx={{
+            display: 'flex',
+            overflowX: 'auto',
+            gap: 3,
+            pb: 2,
+            scrollbarWidth: 'none',
+            '&::-webkit-scrollbar': { display: 'none' },
+          }}
+        >
+          {[...storiesToRender, ...storiesToRender].map((story, i) => (
+            <Box key={i} sx={{ width: { xs: 200, sm: 250 }, flexShrink: 0 }}>
               <Card
                 elevation={0}
                 sx={{
                   border: '1px solid',
                   borderColor: 'divider',
-                  borderRadius: 3,
+                  borderRadius: 2,
                   height: '100%',
                   bgcolor: 'background.default',
                 }}
@@ -434,19 +567,46 @@ export default function SchoolInfo() {
                   </Typography>
                 </CardContent>
               </Card>
-            </Grid>
+            </Box>
           ))}
-        </Grid>
+        </Box>
       </Box>
 
       {/* Instagram Style Posts Grid */}
       <Box sx={{ mt: 2 }}>
         <Divider sx={{ mb: 3 }} />
-        <Typography variant="h6" fontWeight={700} gutterBottom textAlign="center" sx={{ mb: 3 }}>
-          Recent Posts
-        </Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            mb: 3,
+            position: 'relative',
+            justifyContent: 'center',
+          }}
+        >
+          <Typography variant="h6" fontWeight={700} textAlign="center">
+            Recent Posts
+          </Typography>
+          {isPrincipalView && (
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<Add />}
+              onClick={() => setAddPostOpen(true)}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 600,
+                position: 'absolute',
+                right: 0,
+              }}
+            >
+              Add Post
+            </Button>
+          )}
+        </Box>
         <Grid container spacing={1}>
-          {DUMMY_POSTS.map((post) => (
+          {localPosts.map((post) => (
             <Grid item xs={4} key={post.id}>
               <Box
                 sx={{
@@ -504,6 +664,97 @@ export default function SchoolInfo() {
           ))}
         </Grid>
       </Box>
+
+      {/* Add Post Dialog */}
+      <Dialog open={addPostOpen} onClose={() => setAddPostOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle
+          sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+        >
+          <Typography variant="h6" fontWeight={700}>
+            Create New Post
+          </Typography>
+          <IconButton onClick={() => setAddPostOpen(false)}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <Divider />
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box
+            sx={{
+              width: '100%',
+              height: 250,
+              bgcolor: 'action.hover',
+              borderRadius: 2,
+              border: '1px dashed',
+              borderColor: 'divider',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            {postForm.image ? (
+              <>
+                <img
+                  src={postForm.image}
+                  alt="Post"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+                <IconButton
+                  sx={{
+                    position: 'absolute',
+                    top: 8,
+                    right: 8,
+                    bgcolor: 'rgba(0,0,0,0.5)',
+                    color: 'white',
+                    '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' },
+                  }}
+                  onClick={() => setPostForm({ ...postForm, image: null })}
+                >
+                  <Close fontSize="small" />
+                </IconButton>
+              </>
+            ) : (
+              <Button
+                component="label"
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1,
+                  color: 'text.secondary',
+                  textTransform: 'none',
+                }}
+              >
+                {isUploading ? <CircularProgress size={24} /> : <PhotoCamera fontSize="large" />}
+                <Typography>{isUploading ? 'Uploading...' : 'Upload Photo'}</Typography>
+                <input type="file" hidden accept="image/*" onChange={handlePostImageUpload} />
+              </Button>
+            )}
+          </Box>
+          <TextField
+            multiline
+            rows={3}
+            placeholder="Write a caption..."
+            fullWidth
+            value={postForm.caption}
+            onChange={(e) => setPostForm({ ...postForm, caption: e.target.value })}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => setAddPostOpen(false)} sx={{ textTransform: 'none' }}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!postForm.image || isUploading}
+            onClick={handleAddPost}
+            sx={{ textTransform: 'none', px: 4 }}
+          >
+            Post
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 
