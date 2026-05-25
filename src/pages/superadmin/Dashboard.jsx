@@ -232,7 +232,7 @@ export default function SADashboard() {
             <SchoolForm
               initialData={editSchool || {}}
               isNew={!editSchool}
-              existingIds={schools.map((s) => s.schoolUniqueId)}
+              existingIds={schools.map((s) => s.institutionUniqueId)}
               onSubmit={(data) => mutation.mutate(data)}
               isSubmitting={mutation.isPending}
             />

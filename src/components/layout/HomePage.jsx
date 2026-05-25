@@ -230,7 +230,7 @@ export default function HomePage() {
     userLoc ? (
       <MapContainer
         center={[userLoc.lat, userLoc.lng]}
-        zoom={14}
+        zoom={15}
         style={{ height: '100%', width: '100%', zIndex: 1 }}
       >
         <ChangeView center={[userLoc.lat, userLoc.lng]} />

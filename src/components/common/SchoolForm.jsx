@@ -58,7 +58,7 @@ async function getCroppedImg(imageSrc, pixelCrop) {
   return canvas.toDataURL('image/jpeg');
 }
 
-const DEFAULT_FORM = {
+const getDefaultForm = () => ({
   institutionType: 'School',
   institutionSector: 'private',
   institutionUniqueId: '',
@@ -88,7 +88,7 @@ const DEFAULT_FORM = {
   principalLastName: '',
   principalEmail: '',
   principalPhone: '',
-};
+});
 
 export default function SchoolForm({
   initialData = {},
@@ -97,7 +97,7 @@ export default function SchoolForm({
   isNew = false,
   existingIds = [],
 }) {
-  const [form, setForm] = useState(DEFAULT_FORM);
+  const [form, setForm] = useState(getDefaultForm());
   const [viewImage, setViewImage] = useState(null);
   const [cropOpen, setCropOpen] = useState(false);
   const [cropImage, setCropImage] = useState(null);
@@ -110,11 +110,11 @@ export default function SchoolForm({
   const [isFetchingLocation, setIsFetchingLocation] = useState(false);
 
   useEffect(() => {
-    if (initialData && Object.keys(initialData).length > 0) {
+    if (!isNew && initialData && Object.keys(initialData).length > 0) {
       const pInfo =
         typeof initialData.principalId === 'object' ? initialData.principalId || {} : {};
       setForm({
-        ...DEFAULT_FORM,
+        ...getDefaultForm(),
         institutionType: initialData.institutionType || 'School',
         institutionSector: initialData.institutionSector || 'private',
         institutionUniqueId: initialData.institutionUniqueId || '',
@@ -154,9 +154,9 @@ export default function SchoolForm({
         principalPhone: initialData.principalPhone || pInfo.phone || '',
       });
     } else {
-      setForm(DEFAULT_FORM);
+      setForm(getDefaultForm());
     }
-  }, [initialData]);
+  }, [initialData._id, isNew]);
 
   const handleChange = (k, v) => {
     const keys = k.split('.');
@@ -167,7 +167,14 @@ export default function SchoolForm({
           : { ...p, [keys[0]]: { ...p[keys[0]], [keys[1]]: v } };
 
       if (k === 'name' && isNew && !p.institutionUniqueIdEdited) {
-        updated.institutionUniqueId = v.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+        const baseId = v.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+        let uniqueId = baseId;
+        let counter = 1;
+        while (baseId && existingIds.includes(uniqueId)) {
+          uniqueId = `${baseId}${counter}`;
+          counter++;
+        }
+        updated.institutionUniqueId = uniqueId;
       }
       if (k === 'institutionUniqueId') {
         updated.institutionUniqueIdEdited = true;
@@ -430,12 +437,25 @@ export default function SchoolForm({
                     onChange={(e) => handleChange(k, e.target.value)}
                     disabled={disabled}
                     error={isError}
+                    FormHelperTextProps={{
+                      sx: {
+                        color:
+                          k === 'institutionUniqueId' && form[k] && !isError && isNew
+                            ? 'success.main'
+                            : undefined,
+                        fontWeight: k === 'institutionUniqueId' ? 600 : 400,
+                      },
+                    }}
                     helperText={
-                      isError
-                        ? '❌ This School ID is already taken.'
-                        : k === 'institutionUniqueId' && isNew
-                          ? 'Auto-generated. Must be unique.'
-                          : ''
+                      k === 'institutionUniqueId'
+                        ? isError
+                          ? '❌ Not Available (ID already taken)'
+                          : isNew && form[k]
+                            ? '✅ Available'
+                            : isNew
+                              ? 'Auto-generated. Must be unique.'
+                              : 'School ID cannot be changed.'
+                        : ''
                     }
                   />
                 </Grid>
