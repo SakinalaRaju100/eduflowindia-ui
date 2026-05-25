@@ -187,7 +187,6 @@ export default function HomePage() {
   const navigate = useNavigate();
   const [userLoc, setUserLoc] = useState(null);
   const [schools, setSchools] = useState([]);
-  const [mobileMapOpen, setMobileMapOpen] = useState(false);
   const [commentsDrawerOpen, setCommentsDrawerOpen] = useState(false);
   const [selectedFeedId, setSelectedFeedId] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
@@ -255,7 +254,6 @@ export default function HomePage() {
                 variant="subtitle2"
                 fontWeight={700}
                 onClick={() => {
-                  setMobileMapOpen(false);
                   navigate(`/${school.uniqueId}`);
                 }}
                 sx={{
@@ -276,7 +274,6 @@ export default function HomePage() {
                   size="small"
                   fullWidth
                   onClick={() => {
-                    setMobileMapOpen(false);
                     navigate(`/${school.uniqueId}`);
                   }}
                   sx={{ textTransform: 'none', py: 0.2, px: 1 }}
@@ -315,9 +312,9 @@ export default function HomePage() {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pt: 1, pb: 1 }}>
       <Container maxWidth="xl" disableGutters sx={{ px: '6px' }}>
-        <Grid container spacing={{ xs: 1.5, md: 4 }}>
+        <Grid container spacing={{ xs: 1.5, md: 4 }} justifyContent="center">
           {/* Feeds Section (Left) */}
-          <Grid item xs={12} md={7} lg={8}>
+          <Grid item xs={12} md={8} lg={8}>
             <Box
               sx={{
                 display: 'flex',
@@ -334,7 +331,7 @@ export default function HomePage() {
                 sx={{
                   '& .MuiTab-root': {
                     textTransform: 'none',
-                    fontSize: { xs: 16, md: 20 },
+                    fontSize: { xs: 14, sm: 16, md: 20 },
                     fontWeight: 800,
                     minWidth: 'auto',
                     px: 1,
@@ -344,40 +341,8 @@ export default function HomePage() {
               >
                 <Tab label="Activities" />
                 <Tab label="Careers" />
+                <Tab label="Map" />
               </Tabs>
-              <Box
-                onClick={() => setMobileMapOpen(true)}
-                sx={{
-                  display: { xs: 'block', md: 'none' },
-                  width: 48,
-                  height: 48,
-                  borderRadius: 0.5,
-                  overflow: 'hidden',
-                  border: `1px solid ${theme.palette.divider}`,
-                  position: 'relative',
-                  cursor: 'pointer',
-                  boxShadow: theme.shadows[1],
-                }}
-              >
-                {userLoc && (
-                  <MapContainer
-                    center={[userLoc.lat, userLoc.lng]}
-                    zoom={11}
-                    zoomControl={false}
-                    dragging={false}
-                    scrollWheelZoom={false}
-                    doubleClickZoom={false}
-                    style={{ width: '100%', height: '100%', zIndex: 1 }}
-                  >
-                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                    <Marker position={[userLoc.lat, userLoc.lng]} icon={userIcon} />
-                  </MapContainer>
-                )}
-                {/* Overlay to catch clicks and prevent internal map interaction */}
-                <Box
-                  sx={{ position: 'absolute', inset: 0, zIndex: 10, bgcolor: 'rgba(0,0,0,0.05)' }}
-                />
-              </Box>
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {activeTab === 0 &&
@@ -538,39 +503,33 @@ export default function HomePage() {
                     </CardActions>
                   </Card>
                 ))}
-            </Box>
-          </Grid>
 
-          {/* Map Section (Right - Hidden on Mobile) */}
-          <Grid item xs={12} md={5} lg={4} sx={{ display: { xs: 'none', md: 'block' } }}>
-            <Box
-              sx={{
-                position: { md: 'sticky' },
-                top: { md: 88 },
-                height: { xs: 400, md: 'calc(100vh - 120px)' },
-              }}
-            >
-              <Card
-                elevation={0}
-                sx={{
-                  height: '100%',
-                  border: `1px solid ${theme.palette.divider}`,
-                  borderRadius: 3,
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <LocationOn color="primary" />
-                  <Typography variant="h6" fontWeight={700}>
-                    Discover Schools
-                  </Typography>
-                </Box>
-                <Divider />
-                <Box sx={{ flex: 1, width: '100%', bgcolor: 'action.hover', position: 'relative' }}>
-                  {renderMapContent()}
-                </Box>
-              </Card>
+              {activeTab === 2 && (
+                <Card
+                  elevation={0}
+                  sx={{
+                    height: { xs: 500, md: 600 },
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: 3,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <LocationOn color="primary" />
+                    <Typography variant="h6" fontWeight={700}>
+                      Discover education
+                    </Typography>
+                  </Box>
+                  <Divider />
+                  <Box
+                    sx={{ flex: 1, width: '100%', bgcolor: 'action.hover', position: 'relative' }}
+                  >
+                    {renderMapContent()}
+                  </Box>
+                </Card>
+              )}
             </Box>
           </Grid>
         </Grid>
@@ -607,34 +566,6 @@ export default function HomePage() {
           </Button>
         </Box>
       </Container>
-
-      {/* Mobile Fullscreen Map Dialog */}
-      <Dialog
-        fullScreen
-        open={mobileMapOpen}
-        onClose={() => setMobileMapOpen(false)}
-        TransitionComponent={Transition}
-      >
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <Box
-            sx={{
-              p: 2,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              borderBottom: `1px solid ${theme.palette.divider}`,
-            }}
-          >
-            <IconButton onClick={() => setMobileMapOpen(false)} size="small">
-              <Close />
-            </IconButton>
-            <Typography variant="h6" fontWeight={700}>
-              Discover Schools
-            </Typography>
-          </Box>
-          <Box sx={{ flex: 1, position: 'relative' }}>{renderMapContent()}</Box>
-        </Box>
-      </Dialog>
 
       {/* Comments Drawer */}
       <Drawer

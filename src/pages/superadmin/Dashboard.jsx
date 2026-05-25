@@ -64,7 +64,7 @@ export default function SADashboard() {
   const cols = [
     {
       key: 'name',
-      label: 'School',
+      label: 'Institution',
       minWidth: 200,
       render: (r) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -146,7 +146,7 @@ export default function SADashboard() {
       <Grid container spacing={2.5} sx={{ mb: 3 }}>
         <Grid item xs={6} sm={3}>
           <StatCard
-            title="Total Schools"
+            title="Total Institutions"
             value={stats.totalSchools}
             icon={<School />}
             color="#1565C0"
@@ -155,7 +155,7 @@ export default function SADashboard() {
         </Grid>
         <Grid item xs={6} sm={3}>
           <StatCard
-            title="Active Schools"
+            title="Active Institutions"
             value={stats.activeSchools}
             icon={<School />}
             color="#2E7D32"
@@ -187,7 +187,7 @@ export default function SADashboard() {
             sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}
           >
             <Typography variant="h6" fontWeight={700}>
-              All Schools
+              All Institutions
             </Typography>
             <Button
               variant="contained"
@@ -198,7 +198,7 @@ export default function SADashboard() {
                 setOpen(true);
               }}
             >
-              Register New School
+              Register New Institution
             </Button>
           </Box>
           <DataTable
@@ -216,7 +216,7 @@ export default function SADashboard() {
           sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
         >
           <Typography variant="h6" fontWeight={700}>
-            {editSchool ? 'Edit School' : 'Register New School'}
+            {editSchool ? 'Edit Institution' : 'Register New Institution'}
           </Typography>
           <IconButton onClick={() => setOpen(false)} size="small">
             <Close />

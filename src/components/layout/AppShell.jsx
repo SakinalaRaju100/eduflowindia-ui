@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import UserProfilePopup from '@/components/common/UserProfilePopup';
 
 const PAGE_TITLES = {
-  '/superadmin': 'Schools Management',
+  '/superadmin': 'Education Management',
   '/principal': 'Dashboard',
   '/principal/profile': 'School Profile',
   '/principal/classrooms': 'Classrooms',

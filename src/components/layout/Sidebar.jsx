@@ -46,7 +46,7 @@ const DRAWER_WIDTH = 260;
 const MINI_WIDTH = 72;
 
 const NAV_CONFIG = {
-  superadmin: [{ label: 'Schools', icon: <CorporateFare />, path: '/superadmin' }],
+  superadmin: [{ label: 'Institutions', icon: <CorporateFare />, path: '/superadmin' }],
   principal: [
     { label: 'Dashboard', icon: <Dashboard />, path: '/principal' },
     { label: 'School Profile', icon: <CorporateFare />, path: '/principal/profile' },
