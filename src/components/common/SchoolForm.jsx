@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -17,6 +18,7 @@ import {
   DialogTitle,
   DialogActions,
   Slider,
+  Rating,
 } from '@mui/material';
 import { PhotoCamera, Delete, Close, Add, LocationOn, QrCode2 } from '@mui/icons-material';
 import api from '@/api/client';
@@ -57,6 +59,9 @@ async function getCroppedImg(imageSrc, pixelCrop) {
 
 export default function SchoolForm({ initialData = {}, onSubmit, isSubmitting = false }) {
   const [form, setForm] = useState({
+    institutionType: 'School',
+    institutionSector: '',
+    schoolUniqueId: '',
     name: '',
     email: '',
     phone: '',
@@ -67,6 +72,7 @@ export default function SchoolForm({ initialData = {}, onSubmit, isSubmitting = 
     location: { lat: '', lng: '' },
     logo: null,
     images: [],
+    aboutSchool: '',
     schoolMotive: '',
     keypoints: '',
     successStories: [],
@@ -92,11 +98,14 @@ export default function SchoolForm({ initialData = {}, onSubmit, isSubmitting = 
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
       setForm({
+        institutionType: initialData.institutionType || '',
+        institutionSector: initialData.institutionSector || '',
+        schoolUniqueId: initialData.schoolUniqueId || '',
         name: initialData.name || '',
         email: initialData.email || '',
         phone: initialData.phone || '',
         website: initialData.website || '',
-        affiliationBoard: initialData.affiliationBoard || 'CBSE',
+        affiliationBoard: initialData.affiliationBoard || '',
         affiliationNumber: initialData.affiliationNumber || '',
         address: {
           street: initialData.address?.street || '',
@@ -111,6 +120,7 @@ export default function SchoolForm({ initialData = {}, onSubmit, isSubmitting = 
         },
         logo: initialData.logo || null,
         images: initialData.images || [],
+        aboutSchool: initialData.aboutSchool || '',
         schoolMotive: initialData.schoolMotive || '',
         keypoints: initialData.keypoints || '',
         successStories: initialData.successStories || [],
@@ -118,6 +128,7 @@ export default function SchoolForm({ initialData = {}, onSubmit, isSubmitting = 
           bankAccountNumber: initialData.paymentDetails?.bankAccountNumber || '',
           ifscCode: initialData.paymentDetails?.ifscCode || '',
           upiNumber: initialData.paymentDetails?.upiNumber || '',
+          upiId: initialData.paymentDetails?.upiId || '',
           upiQrCode: initialData.paymentDetails?.upiQrCode || null,
         },
       });
@@ -237,7 +248,7 @@ export default function SchoolForm({ initialData = {}, onSubmit, isSubmitting = 
     const color = colors[form.successStories.length % colors.length];
     setForm((p) => ({
       ...p,
-      successStories: [...p.successStories, { name: '', text: '', color }],
+      successStories: [...p.successStories, { name: '', text: '', color, rating: 5 }],
     }));
   };
 
@@ -332,23 +343,54 @@ export default function SchoolForm({ initialData = {}, onSubmit, isSubmitting = 
 
         <Grid item xs={12} md={9}>
           <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Institution Type</InputLabel>
+                <Select
+                  value={form.institutionType}
+                  onChange={(e) => handleChange('institutionType', e.target.value)}
+                  label="Institution Type"
+                >
+                  <MenuItem value="School">School</MenuItem>
+                  <MenuItem value="College">College</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Institution Sector</InputLabel>
+                <Select
+                  value={form.institutionSector}
+                  onChange={(e) => handleChange('institutionSector', e.target.value)}
+                  label="Institution Sector"
+                >
+                  <MenuItem value="government">Government</MenuItem>
+                  <MenuItem value="private">Private</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+
             {[
-              ['name', 'School Name', 12],
+              ['name', 'School Name', 6],
+              ['schoolUniqueId', 'School Unique ID', 6, true],
               ['email', 'School Email', 6],
               ['phone', 'Phone', 6],
               ['website', 'Website', 6],
               ['affiliationNumber', 'Affiliation Number', 6],
-            ].map(([k, l, xs]) => (
+            ].map(([k, l, xs, disabled]) => (
               <Grid item xs={12} sm={xs} key={k}>
                 <TextField
                   fullWidth
                   size="small"
                   label={l}
-                  value={form[k]}
+                  value={form[k] || ''}
                   onChange={(e) => handleChange(k, e.target.value)}
+                  disabled={disabled}
                 />
               </Grid>
             ))}
+
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth size="small">
                 <InputLabel>Board</InputLabel>
@@ -357,86 +399,19 @@ export default function SchoolForm({ initialData = {}, onSubmit, isSubmitting = 
                   onChange={(e) => handleChange('affiliationBoard', e.target.value)}
                   label="Board"
                 >
-                  {['CBSE', 'ICSE', 'State Board', 'IB', 'Cambridge', 'Other'].map((b) => (
-                    <MenuItem key={b} value={b}>
-                      {b}
-                    </MenuItem>
-                  ))}
+                  {['State Board', 'Central board', 'University', 'Autonomous', 'Other'].map(
+                    (b) => (
+                      <MenuItem key={b} value={b}>
+                        {b}
+                      </MenuItem>
+                    ),
+                  )}
                 </Select>
               </FormControl>
             </Grid>
           </Grid>
 
-          <Typography variant="subtitle2" fontWeight={700} sx={{ mt: 3, mb: 1 }}>
-            School Motive & Highlights
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={3}
-                size="small"
-                label="School Motive"
-                value={form.schoolMotive}
-                onChange={(e) => handleChange('schoolMotive', e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={2}
-                size="small"
-                label="Key Highlights (Comma Separated)"
-                value={form.keypoints}
-                onChange={(e) => handleChange('keypoints', e.target.value)}
-                helperText="E.g., Smart Classrooms, Experienced Faculty, Transport Facility"
-              />
-            </Grid>
-          </Grid>
-
-          <Typography variant="subtitle2" fontWeight={700} sx={{ mt: 3, mb: 1 }}>
-            Success Stories
-          </Typography>
-          {form.successStories.map((story, i) => (
-            <Box key={i} sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'flex-start' }}>
-              <Grid container spacing={2} sx={{ flex: 1 }}>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Student Name"
-                    value={story.name}
-                    onChange={(e) => handleStoryChange(i, 'name', e.target.value)}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={8}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Achievement / Story"
-                    value={story.text}
-                    onChange={(e) => handleStoryChange(i, 'text', e.target.value)}
-                  />
-                </Grid>
-              </Grid>
-              <IconButton color="error" onClick={() => handleRemoveStory(i)}>
-                <Delete />
-              </IconButton>
-            </Box>
-          ))}
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<Add />}
-            onClick={handleAddStory}
-            sx={{ mb: 2, textTransform: 'none' }}
-          >
-            Add Success Story
-          </Button>
-
-          <Typography variant="subtitle2" fontWeight={700} sx={{ mt: 3, mb: 1 }}>
+          <Typography variant="subtitle2" fontWeight={700} sx={{ mt: 3, mb: 2 }}>
             Address & Map Coordinates
           </Typography>
           <Grid container spacing={2}>
@@ -478,11 +453,115 @@ export default function SchoolForm({ initialData = {}, onSubmit, isSubmitting = 
             </Grid>
           </Grid>
 
-          <Typography variant="subtitle2" fontWeight={700} sx={{ mt: 3, mb: 1 }}>
+          <Typography variant="subtitle2" fontWeight={700} sx={{ mt: 3, mb: 2 }}>
+            School Information
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                size="small"
+                label="About School"
+                value={form.aboutSchool}
+                onChange={(e) => handleChange('aboutSchool', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                size="small"
+                label="School Motive"
+                value={form.schoolMotive}
+                onChange={(e) => handleChange('schoolMotive', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                multiline
+                rows={2}
+                size="small"
+                label="Key Highlights (Comma Separated)"
+                value={form.keypoints}
+                onChange={(e) => handleChange('keypoints', e.target.value)}
+                helperText="E.g., Smart Classrooms, Experienced Faculty, Transport Facility"
+              />
+            </Grid>
+          </Grid>
+
+          <Typography variant="subtitle2" fontWeight={700} sx={{ mt: 3, mb: 2 }}>
+            Success Stories
+          </Typography>
+          {form.successStories.map((story, i) => (
+            <Box key={i} sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'flex-start' }}>
+              <Grid container spacing={2} sx={{ flex: 1 }}>
+                <Grid item xs={12} md={3}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Student Name"
+                    value={story.name}
+                    onChange={(e) => handleStoryChange(i, 'name', e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={12} md={5}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Achievement / Story"
+                    value={story.text}
+                    onChange={(e) => handleStoryChange(i, 'text', e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={6} md={2}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Color</InputLabel>
+                    <Select
+                      value={story.color || '#1565C0'}
+                      onChange={(e) => handleStoryChange(i, 'color', e.target.value)}
+                      label="Color"
+                    >
+                      <MenuItem value="#1565C0">Blue</MenuItem>
+                      <MenuItem value="#2E7D32">Green</MenuItem>
+                      <MenuItem value="#E65100">Orange</MenuItem>
+                      <MenuItem value="#6A1B9A">Purple</MenuItem>
+                      <MenuItem value="#00695C">Teal</MenuItem>
+                      <MenuItem value="#D84315">Rust</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={6} md={2} sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Rating
+                    value={story.rating || 5}
+                    onChange={(e, newValue) => handleStoryChange(i, 'rating', newValue)}
+                    size="small"
+                  />
+                </Grid>
+              </Grid>
+              <IconButton color="error" onClick={() => handleRemoveStory(i)}>
+                <Delete />
+              </IconButton>
+            </Box>
+          ))}
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<Add />}
+            onClick={handleAddStory}
+            sx={{ mb: 2, textTransform: 'none' }}
+          >
+            Add Success Story
+          </Button>
+
+          <Typography variant="subtitle2" fontWeight={700} sx={{ mt: 3, mb: 2 }}>
             Payment Details (Optional)
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 size="small"
@@ -491,7 +570,7 @@ export default function SchoolForm({ initialData = {}, onSubmit, isSubmitting = 
                 onChange={(e) => handleChange('paymentDetails.bankAccountNumber', e.target.value)}
               />
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 size="small"
@@ -500,13 +579,22 @@ export default function SchoolForm({ initialData = {}, onSubmit, isSubmitting = 
                 onChange={(e) => handleChange('paymentDetails.ifscCode', e.target.value)}
               />
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 size="small"
                 label="UPI Mobile Number"
                 value={form.paymentDetails.upiNumber}
                 onChange={(e) => handleChange('paymentDetails.upiNumber', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                size="small"
+                label="UPI Id (e.g. yourname123@bank)"
+                value={form.paymentDetails.upiId || ''}
+                onChange={(e) => handleChange('paymentDetails.upiId', e.target.value)}
               />
             </Grid>
             <Grid item xs={12}>

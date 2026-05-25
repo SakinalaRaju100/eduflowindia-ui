@@ -17,6 +17,9 @@ import {
   DialogActions,
   TextField,
   IconButton,
+  Chip,
+  CardActions,
+  MenuItem,
 } from '@mui/material';
 import {
   Phone,
@@ -33,6 +36,7 @@ import {
   Add,
   Close,
   PhotoCamera,
+  School as SchoolIcon,
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
@@ -97,6 +101,36 @@ export default function SchoolInfo() {
   ];
 
   const [localPosts, setLocalPosts] = useState(DUMMY_POSTS);
+
+  const DUMMY_JOBS = [
+    {
+      id: 1,
+      title: 'Mathematics Teacher (Senior Secondary)',
+      type: 'Full-time',
+      location: 'Hyderabad, Telangana',
+      description:
+        "We are looking for an experienced Mathematics teacher for grades 11 and 12. Must have a master's degree in Mathematics and a B.Ed.",
+      postedAt: '2 days ago',
+    },
+    {
+      id: 2,
+      title: 'Primary School Coordinator',
+      type: 'Full-time',
+      location: 'Hyderabad, Telangana',
+      description:
+        'Seeking a dynamic and enthusiastic coordinator for our primary section. Minimum 5 years of teaching experience required.',
+      postedAt: '1 week ago',
+    },
+  ];
+  const [localJobs, setLocalJobs] = useState(DUMMY_JOBS);
+  const [addJobOpen, setAddJobOpen] = useState(false);
+  const [jobForm, setJobForm] = useState({
+    title: '',
+    type: 'Full-time',
+    location: '',
+    description: '',
+  });
+
   const [addPostOpen, setAddPostOpen] = useState(false);
   const [postForm, setPostForm] = useState({ caption: '', image: null });
   const [isUploading, setIsUploading] = useState(false);
@@ -180,6 +214,29 @@ export default function SchoolInfo() {
     }
   };
 
+  const handleAddJob = async () => {
+    if (!jobForm.title || !jobForm.description) {
+      showSnackbar('Title and Description are required', 'warning');
+      return;
+    }
+    try {
+      // Simulate API Call - Append job locally
+      setLocalJobs([
+        {
+          id: Date.now(),
+          ...jobForm,
+          postedAt: 'Just now',
+        },
+        ...localJobs,
+      ]);
+      showSnackbar('Job posted successfully!', 'success');
+      setAddJobOpen(false);
+      setJobForm({ title: '', type: 'Full-time', location: '', description: '' });
+    } catch (error) {
+      console.error('Failed to post job', error);
+    }
+  };
+
   const school = schoolUniqueId
     ? publicSchoolData
     : user?.school && typeof user.school === 'object'
@@ -200,16 +257,32 @@ export default function SchoolInfo() {
     );
 
   const defaultStories = [
-    { name: 'Aditi Sharma', text: 'Secured All India Rank 15 in JEE Advanced.', color: '#1565C0' },
-    { name: 'Rahul Verma', text: 'Won Gold at the National Science Olympiad.', color: '#2E7D32' },
+    {
+      name: 'Aditi Sharma',
+      text: 'Secured All India Rank 15 in JEE Advanced.',
+      color: '#1565C0',
+      rating: 5,
+    },
+    {
+      name: 'Rahul Verma',
+      text: 'Won Gold at the National Science Olympiad.',
+      color: '#2E7D32',
+      rating: 5,
+    },
     {
       name: 'Sneha Patel',
       text: 'Awarded full academic scholarship at MIT, USA.',
       color: '#E65100',
+      rating: 5,
     },
   ];
   const storiesToRender =
     school.successStories?.length > 0 ? school.successStories : defaultStories;
+
+  // Check if the viewer is authenticated and belongs to the currently viewed school
+  const canViewPaymentDetails = Boolean(
+    user && school && user.school && (user.school._id === school._id || user.school === school._id),
+  );
 
   const content = (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -270,11 +343,23 @@ export default function SchoolInfo() {
             About {school.name}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, mb: 3 }}>
-            {school.schoolMotive ||
+            {school.aboutSchool ||
+              school.schoolMotive ||
               'Our motive is to provide a nurturing environment that fosters academic excellence, character building, and holistic development. We believe in empowering students with the knowledge, skills, and values needed to succeed in an ever-changing world.'}
           </Typography>
 
-          <Typography variant="subtitle2" fontWeight={700} gutterBottom>
+          {school.schoolMotive && school.aboutSchool && (
+            <>
+              <Typography variant="subtitle2" fontWeight={700} gutterBottom>
+                Our Motive
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, mb: 3 }}>
+                {school.schoolMotive}
+              </Typography>
+            </>
+          )}
+
+          <Typography variant="subtitle2" fontWeight={700} gutterBottom sx={{ mt: 2 }}>
             Key Highlights
           </Typography>
           <Grid container spacing={1.5}>
@@ -447,6 +532,24 @@ export default function SchoolInfo() {
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, mt: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Avatar sx={{ bgcolor: 'secondary.50', color: 'secondary.main' }}>
+                    <SchoolIcon />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      Institution Type
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      fontWeight={600}
+                      sx={{ textTransform: 'capitalize' }}
+                    >
+                      {school.institutionSector || 'Private'} {school.institutionType || 'School'}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Avatar sx={{ bgcolor: '#F3E5F5', color: '#8E24AA' }}>
                     <Fingerprint />
                   </Avatar>
@@ -508,15 +611,104 @@ export default function SchoolInfo() {
         </Grid>
       </Grid>
 
-      <a
-        href="upi://pay?pa=paytmqr5i5nlv@ptys;pn=Rajesh&amp;mc=198&amp;tr=TXN1237fuy98796903264070hd89h9456&amp;tn=Payment%20Description&amp;am=1.00&amp;cu=INR"
-        title="Pay via UPI"
-        // target="_blank"
-        rel="noopener noreferrer"
-        // style="display:inline-block; padding:12px 20px; background-color:#7c3aed; color:white; text-decoration:none; border-radius:8px; font-weight:bold;"
-      >
-        Pay Now via UPI
-      </a>
+      {/* Payment Details */}
+      {canViewPaymentDetails &&
+        school.paymentDetails &&
+        (school.paymentDetails.upiId ||
+          school.paymentDetails.bankAccountNumber ||
+          school.paymentDetails.upiQrCode) && (
+          <Card
+            elevation={0}
+            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, mt: 3 }}
+          >
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" fontWeight={700} gutterBottom>
+                Payment & Account Details
+              </Typography>
+              <Grid container spacing={3} sx={{ mt: 0.5 }}>
+                <Grid item xs={12} md={8}>
+                  <Grid container spacing={2}>
+                    {school.paymentDetails.bankAccountNumber && (
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant="caption" color="text.secondary">
+                          Bank Account Number
+                        </Typography>
+                        <Typography variant="body2" fontWeight={600}>
+                          {school.paymentDetails.bankAccountNumber}
+                        </Typography>
+                      </Grid>
+                    )}
+                    {school.paymentDetails.ifscCode && (
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant="caption" color="text.secondary">
+                          IFSC Code
+                        </Typography>
+                        <Typography variant="body2" fontWeight={600}>
+                          {school.paymentDetails.ifscCode}
+                        </Typography>
+                      </Grid>
+                    )}
+                    {school.paymentDetails.upiId && (
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant="caption" color="text.secondary">
+                          UPI ID
+                        </Typography>
+                        <Typography variant="body2" fontWeight={600}>
+                          {school.paymentDetails.upiId}
+                        </Typography>
+                      </Grid>
+                    )}
+                    {school.paymentDetails.upiNumber && (
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant="caption" color="text.secondary">
+                          UPI Number
+                        </Typography>
+                        <Typography variant="body2" fontWeight={600}>
+                          {school.paymentDetails.upiNumber}
+                        </Typography>
+                      </Grid>
+                    )}
+                  </Grid>
+                </Grid>
+                {school.paymentDetails.upiQrCode && (
+                  <Grid
+                    item
+                    xs={12}
+                    md={4}
+                    sx={{
+                      display: 'flex',
+                      justifyContent: { xs: 'flex-start', md: 'flex-end' },
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        textAlign: 'center',
+                        p: 1,
+                        border: '1px dashed',
+                        borderColor: 'divider',
+                        borderRadius: 2,
+                      }}
+                    >
+                      <img
+                        src={school.paymentDetails.upiQrCode}
+                        alt="UPI QR Code"
+                        style={{ width: 140, height: 140, objectFit: 'contain', borderRadius: 4 }}
+                      />
+                      <Typography
+                        variant="caption"
+                        display="block"
+                        sx={{ mt: 0.5, fontWeight: 600 }}
+                      >
+                        Scan to Pay
+                      </Typography>
+                    </Box>
+                  </Grid>
+                )}
+              </Grid>
+            </CardContent>
+          </Card>
+        )}
 
       {/* Success Stories */}
       <Box sx={{ mt: 1 }}>
@@ -564,7 +756,7 @@ export default function SchoolInfo() {
                     {story.name}
                   </Typography>
                   <Box sx={{ display: 'flex', justifyContent: 'center', my: 0.5 }}>
-                    {[1, 2, 3, 4, 5].map((s) => (
+                    {Array.from({ length: story.rating || 5 }).map((_, s) => (
                       <Star key={s} sx={{ fontSize: 16, color: '#FFB300' }} />
                     ))}
                   </Box>
@@ -580,6 +772,105 @@ export default function SchoolInfo() {
             </Box>
           ))}
         </Box>
+      </Box>
+
+      {/* Careers / Job Openings */}
+      <Box sx={{ mt: 2 }}>
+        <Divider sx={{ mb: 3 }} />
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            mb: 3,
+            position: 'relative',
+            justifyContent: 'center',
+          }}
+        >
+          <Typography variant="h6" fontWeight={700} textAlign="center">
+            Careers & Job Openings
+          </Typography>
+          {isPrincipalView && (
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<Add />}
+              onClick={() => setAddJobOpen(true)}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 600,
+                position: 'absolute',
+                right: 0,
+              }}
+            >
+              Post a Job
+            </Button>
+          )}
+        </Box>
+        <Grid container spacing={2}>
+          {localJobs.map((job) => (
+            <Grid item xs={12} sm={6} key={job.id}>
+              <Card
+                elevation={0}
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 3,
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <CardContent sx={{ flex: 1, p: 3 }}>
+                  <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+                    {job.title}
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+                    <Chip label={job.type} size="small" color="primary" sx={{ fontWeight: 600 }} />
+                    <Chip label={job.location || 'Remote'} size="small" sx={{ fontWeight: 600 }} />
+                  </Box>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    {job.description}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Posted: {job.postedAt}
+                  </Typography>
+                </CardContent>
+                <Divider />
+                <CardActions sx={{ p: 2, justifyContent: 'flex-end' }}>
+                  {isPrincipalView ? (
+                    <Button
+                      size="small"
+                      color="error"
+                      onClick={() => setLocalJobs(localJobs.filter((j) => j.id !== job.id))}
+                    >
+                      Remove Post
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="contained"
+                      size="small"
+                      disableElevation
+                      sx={{ textTransform: 'none' }}
+                      onClick={() =>
+                        showSnackbar('Application process will be available soon.', 'info')
+                      }
+                    >
+                      Apply Now
+                    </Button>
+                  )}
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
+          {localJobs.length === 0 && (
+            <Grid item xs={12}>
+              <Alert severity="info" sx={{ borderRadius: 2 }}>
+                No job openings currently available.
+              </Alert>
+            </Grid>
+          )}
+        </Grid>
       </Box>
 
       {/* Instagram Style Posts Grid */}
@@ -611,7 +902,7 @@ export default function SchoolInfo() {
                 right: 0,
               }}
             >
-              Add Post
+              Add Activity Post
             </Button>
           )}
         </Box>
@@ -762,6 +1053,73 @@ export default function SchoolInfo() {
             sx={{ textTransform: 'none', px: 4 }}
           >
             Post
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add Job Dialog */}
+      <Dialog open={addJobOpen} onClose={() => setAddJobOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle
+          sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+        >
+          <Typography variant="h6" fontWeight={700}>
+            Post a New Job
+          </Typography>
+          <IconButton onClick={() => setAddJobOpen(false)}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <Divider />
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <TextField
+            label="Job Title"
+            fullWidth
+            size="small"
+            value={jobForm.title}
+            onChange={(e) => setJobForm({ ...jobForm, title: e.target.value })}
+          />
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                select
+                label="Employment Type"
+                fullWidth
+                size="small"
+                value={jobForm.type}
+                onChange={(e) => setJobForm({ ...jobForm, type: e.target.value })}
+              >
+                <MenuItem value="Full-time">Full-time</MenuItem>
+                <MenuItem value="Part-time">Part-time</MenuItem>
+                <MenuItem value="Contract">Contract</MenuItem>
+                <MenuItem value="Internship">Internship</MenuItem>
+              </TextField>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Location"
+                fullWidth
+                size="small"
+                placeholder="e.g. Hyderabad, TS"
+                value={jobForm.location}
+                onChange={(e) => setJobForm({ ...jobForm, location: e.target.value })}
+              />
+            </Grid>
+          </Grid>
+          <TextField
+            multiline
+            rows={4}
+            label="Job Description"
+            fullWidth
+            value={jobForm.description}
+            onChange={(e) => setJobForm({ ...jobForm, description: e.target.value })}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => setAddJobOpen(false)} sx={{ textTransform: 'none' }}>
+            Cancel
+          </Button>
+          <Button variant="contained" onClick={handleAddJob} sx={{ textTransform: 'none', px: 4 }}>
+            Post Job
           </Button>
         </DialogActions>
       </Dialog>
