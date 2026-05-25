@@ -508,6 +508,16 @@ export default function SchoolInfo() {
         </Grid>
       </Grid>
 
+      <a
+        href="upi://pay?pa=paytmqr5i5nlv@ptys;pn=Rajesh&amp;mc=198&amp;tr=TXN1237fuy98796903264070hd89h9456&amp;tn=Payment%20Description&amp;am=1.00&amp;cu=INR"
+        title="Pay via UPI"
+        // target="_blank"
+        rel="noopener noreferrer"
+        // style="display:inline-block; padding:12px 20px; background-color:#7c3aed; color:white; text-decoration:none; border-radius:8px; font-weight:bold;"
+      >
+        Pay Now via UPI
+      </a>
+
       {/* Success Stories */}
       <Box sx={{ mt: 1 }}>
         <Typography variant="h6" fontWeight={700} gutterBottom>
