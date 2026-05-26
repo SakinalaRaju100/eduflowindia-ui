@@ -84,16 +84,16 @@ export const authAPI = {
 };
 
 export const superadminAPI = {
-  getSchools: () => apiClient.get('/superadmin/schools'),
-  createSchool: (data) => apiClient.post('/superadmin/schools', data),
-  updateSchool: (id, data) => apiClient.put(`/superadmin/schools/${id}`, data),
-  deleteSchool: (id) => apiClient.delete(`/superadmin/schools/${id}`),
+  getInstitutions: () => apiClient.get('/superadmin/schools'),
+  createInstitution: (data) => apiClient.post('/superadmin/schools', data),
+  updateInstitution: (id, data) => apiClient.put(`/superadmin/schools/${id}`, data),
+  deleteInstitution: (id) => apiClient.delete(`/superadmin/schools/${id}`),
   getStats: () => apiClient.get('/superadmin/stats'),
 };
 
 export const principalAPI = {
-  getSchoolProfile: () => apiClient.get('/principal/school'),
-  updateSchoolProfile: (data) => apiClient.put('/principal/school', data),
+  getInstitutionProfile: () => apiClient.get('/principal/Institution'),
+  updateInstitutionProfile: (data) => apiClient.put('/principal/Institution', data),
   getClassrooms: () => apiClient.get('/principal/classrooms'),
   createClassroom: (data) => apiClient.post('/principal/classrooms', data),
   updateClassroom: (id, data) => apiClient.put(`/principal/classrooms/${id}`, data),
@@ -122,7 +122,7 @@ export const attendanceAPI = {
       params: { month, year },
     }),
   getStudentYearly: (studentId) => apiClient.get(`/attendance/student/${studentId}/yearly`),
-  getSchoolSummary: () => apiClient.get('/attendance/school-summary'),
+  getInstitutionSummary: () => apiClient.get('/attendance/Institution-summary'),
 };
 
 export const examAPI = {

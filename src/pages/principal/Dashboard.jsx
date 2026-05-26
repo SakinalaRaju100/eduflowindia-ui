@@ -18,7 +18,7 @@ import { People, Class, Person, AttachMoney, TrendingUp, School } from '@mui/ico
 import { useQuery } from '@tanstack/react-query';
 import api, { principalAPI, attendanceAPI, announcementAPI } from '@/api/client';
 import StatCard from '@/components/common/StatCard';
-import SchoolBanner from '@/components/common/SchoolBanner';
+import InstitutionBanner from '@/components/common/InstitutionBanner';
 import {
   BarChart,
   Bar,
@@ -37,8 +37,8 @@ import { useNavigate, useOutletContext } from 'react-router-dom';
 
 export default function PrincipalDashboard() {
   const { data: schoolProfile } = useQuery({
-    queryKey: ['my-school'],
-    queryFn: () => api.get('/principal/school-profile').then((res) => res.data.data),
+    queryKey: ['my-institution'],
+    queryFn: () => api.get('/principal/Institution-profile').then((res) => res.data.data),
   });
   const { data: reports } = useQuery({
     queryKey: ['p-reports'],
@@ -46,7 +46,7 @@ export default function PrincipalDashboard() {
   });
   const { data: attSummary } = useQuery({
     queryKey: ['att-summary'],
-    queryFn: () => attendanceAPI.getSchoolSummary(),
+    queryFn: () => attendanceAPI.getInstitutionSummary(),
   });
   const { data: announcements } = useQuery({
     queryKey: ['announcements'],
@@ -124,7 +124,7 @@ export default function PrincipalDashboard() {
 
   return (
     <Box>
-      <SchoolBanner />
+      <InstitutionBanner />
 
       <Grid container spacing={2.5} sx={{ mb: 3 }}>
         <Grid onClick={() => navigate('/principal/classrooms')} item xs={6} sm={3}>

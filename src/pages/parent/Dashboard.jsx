@@ -35,7 +35,7 @@ export default function ParentDashboard() {
             <People sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
             <Typography color="text.secondary">No children linked to your account yet.</Typography>
             <Typography variant="caption" color="text.secondary">
-              Contact your school administrator to link student accounts.
+              Contact your institution administrator to link student accounts.
             </Typography>
           </CardContent>
         </Card>

@@ -42,10 +42,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/api/client';
-import SchoolBanner from '@/components/common/SchoolBanner';
+import InstitutionBanner from '@/components/common/InstitutionBanner';
 import { showSnackbar } from '@/components/common/ShowSnackbar';
 
-export default function SchoolInfo() {
+export default function InstitutionInfo() {
   const { user } = useAuth();
   const { institutionUniqueId } = useParams();
   const location = useLocation();
@@ -53,8 +53,8 @@ export default function SchoolInfo() {
 
   const isPrincipalView = user?.role === 'principal' && location.pathname === '/principal/profile';
 
-  const { data: publicSchoolData, isLoading } = useQuery({
-    queryKey: ['public-school', institutionUniqueId],
+  const { data: publicInstitutionData, isLoading } = useQuery({
+    queryKey: ['public-institution', institutionUniqueId],
     queryFn: () =>
       api.get(`/auth/schools/unique/${institutionUniqueId}`).then((res) => res.data.data),
     enabled: !!institutionUniqueId,
@@ -115,7 +115,7 @@ export default function SchoolInfo() {
     },
     {
       id: 2,
-      title: 'Primary School Coordinator',
+      title: 'Primary Institution Coordinator',
       type: 'Full-time',
       location: 'Hyderabad, Telangana',
       description:
@@ -238,10 +238,10 @@ export default function SchoolInfo() {
     }
   };
 
-  const school = institutionUniqueId
-    ? publicSchoolData
-    : user?.school && typeof user.school === 'object'
-      ? user.school
+  const institution = institutionUniqueId
+    ? publicInstitutionData
+    : user?.institution && typeof user.institution === 'object'
+      ? user.institution
       : null;
 
   if (isLoading && institutionUniqueId)
@@ -250,10 +250,10 @@ export default function SchoolInfo() {
         <CircularProgress />
       </Box>
     );
-  if (!school)
+  if (!institution)
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Typography>School information not available.</Typography>
+        <Typography>Institution information not available.</Typography>
       </Box>
     );
 
@@ -278,11 +278,14 @@ export default function SchoolInfo() {
     },
   ];
   const storiesToRender =
-    school.successStories?.length > 0 ? school.successStories : defaultStories;
+    institution.successStories?.length > 0 ? institution.successStories : defaultStories;
 
-  // Check if the viewer is authenticated and belongs to the currently viewed school
+  // Check if the viewer is authenticated and belongs to the currently viewed institution
   const canViewPaymentDetails = Boolean(
-    user && school && user.school && (user.school._id === school._id || user.school === school._id),
+    user &&
+    institution &&
+    user.institution &&
+    (user.institution._id === institution._id || user.institution === institution._id),
   );
 
   const content = (
@@ -299,7 +302,7 @@ export default function SchoolInfo() {
           </Button>
         </Box>
       )}
-      <SchoolBanner propSchool={school} />
+      <InstitutionBanner propInstitution={institution} />
 
       {/* Instagram Style Profile Stats */}
       <Box
@@ -313,7 +316,7 @@ export default function SchoolInfo() {
       >
         <Box sx={{ textAlign: 'center', cursor: 'pointer' }}>
           <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.2 }}>
-            {school.postsCount || localPosts.length}
+            {institution.postsCount || localPosts.length}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Posts
@@ -321,7 +324,7 @@ export default function SchoolInfo() {
         </Box>
         <Box sx={{ textAlign: 'center', cursor: 'pointer' }}>
           <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.2 }}>
-            {school.followersCount?.toLocaleString() || '1,250'}
+            {institution.followersCount?.toLocaleString() || '1,250'}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Followers
@@ -329,7 +332,7 @@ export default function SchoolInfo() {
         </Box>
         <Box sx={{ textAlign: 'center', cursor: 'pointer' }}>
           <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.2 }}>
-            {school.followingCount?.toLocaleString() || '45'}
+            {institution.followingCount?.toLocaleString() || '45'}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Following
@@ -341,21 +344,21 @@ export default function SchoolInfo() {
       <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
         <CardContent sx={{ p: 3 }}>
           <Typography variant="h6" fontWeight={700} gutterBottom>
-            About {school.name}
+            About {institution.name}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, mb: 3 }}>
-            {school.aboutInstitute ||
-              school.institutionMotive ||
+            {institution.aboutInstitute ||
+              institution.institutionMotive ||
               'Our motive is to provide a nurturing environment that fosters academic excellence, character building, and holistic development. We believe in empowering students with the knowledge, skills, and values needed to succeed in an ever-changing world.'}
           </Typography>
 
-          {school.institutionMotive && school.aboutInstitute && (
+          {institution.institutionMotive && institution.aboutInstitute && (
             <>
               <Typography variant="subtitle2" fontWeight={700} gutterBottom>
                 Our Motive
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, mb: 3 }}>
-                {school.institutionMotive}
+                {institution.institutionMotive}
               </Typography>
             </>
           )}
@@ -364,8 +367,8 @@ export default function SchoolInfo() {
             Key Highlights
           </Typography>
           <Grid container spacing={1.5}>
-            {(school.keypoints
-              ? school.keypoints.split(',').map((s) => s.trim())
+            {(institution.keypoints
+              ? institution.keypoints.split(',').map((s) => s.trim())
               : [
                   'State-of-the-art Infrastructure',
                   'Highly Qualified & Experienced Faculty',
@@ -411,7 +414,7 @@ export default function SchoolInfo() {
             <Box>
               <Typography variant="subtitle1" fontWeight={700} color="info.dark">
                 Admissions are in progress for{' '}
-                {school.currentAcademicYear || 'the upcoming session'}!
+                {institution.currentAcademicYear || 'the upcoming session'}!
               </Typography>
               <Typography variant="body2" color="info.main">
                 Enrollments are now open. Secure your child's future today with our comprehensive
@@ -452,15 +455,15 @@ export default function SchoolInfo() {
                     <Typography
                       variant="body2"
                       fontWeight={600}
-                      component={school.phone ? 'a' : 'p'}
-                      href={school.phone ? `tel:${school.phone}` : undefined}
+                      component={institution.phone ? 'a' : 'p'}
+                      href={institution.phone ? `tel:${institution.phone}` : undefined}
                       sx={{
                         textDecoration: 'none',
-                        color: school.phone ? 'primary.main' : 'inherit',
-                        '&:hover': school.phone ? { textDecoration: 'underline' } : {},
+                        color: institution.phone ? 'primary.main' : 'inherit',
+                        '&:hover': institution.phone ? { textDecoration: 'underline' } : {},
                       }}
                     >
-                      {school.phone || 'Not provided'}
+                      {institution.phone || 'Not provided'}
                     </Typography>
                   </Box>
                 </Box>
@@ -475,15 +478,15 @@ export default function SchoolInfo() {
                     <Typography
                       variant="body2"
                       fontWeight={600}
-                      component={school.email ? 'a' : 'p'}
-                      href={school.email ? `mailto:${school.email}` : undefined}
+                      component={institution.email ? 'a' : 'p'}
+                      href={institution.email ? `mailto:${institution.email}` : undefined}
                       sx={{
                         textDecoration: 'none',
-                        color: school.email ? 'primary.main' : 'inherit',
-                        '&:hover': school.email ? { textDecoration: 'underline' } : {},
+                        color: institution.email ? 'primary.main' : 'inherit',
+                        '&:hover': institution.email ? { textDecoration: 'underline' } : {},
                       }}
                     >
-                      {school.email || 'Not provided'}
+                      {institution.email || 'Not provided'}
                     </Typography>
                   </Box>
                 </Box>
@@ -498,23 +501,23 @@ export default function SchoolInfo() {
                     <Typography
                       variant="body2"
                       fontWeight={600}
-                      component={school.website ? 'a' : 'p'}
+                      component={institution.website ? 'a' : 'p'}
                       href={
-                        school.website
-                          ? school.website.startsWith('http')
-                            ? school.website
-                            : `https://${school.website}`
+                        institution.website
+                          ? institution.website.startsWith('http')
+                            ? institution.website
+                            : `https://${institution.website}`
                           : undefined
                       }
                       target="_blank"
                       rel="noopener noreferrer"
                       sx={{
                         textDecoration: 'none',
-                        color: school.website ? 'primary.main' : 'inherit',
-                        '&:hover': school.website ? { textDecoration: 'underline' } : {},
+                        color: institution.website ? 'primary.main' : 'inherit',
+                        '&:hover': institution.website ? { textDecoration: 'underline' } : {},
                       }}
                     >
-                      {school.website || 'Not provided'}
+                      {institution.website || 'Not provided'}
                     </Typography>
                   </Box>
                 </Box>
@@ -529,7 +532,7 @@ export default function SchoolInfo() {
           >
             <CardContent sx={{ p: 3 }}>
               <Typography variant="h6" fontWeight={700} gutterBottom>
-                School Details
+                Institution Details
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, mt: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -545,7 +548,8 @@ export default function SchoolInfo() {
                       fontWeight={600}
                       sx={{ textTransform: 'capitalize' }}
                     >
-                      {school.institutionSector || 'Private'} {school.institutionType || 'School'}
+                      {institution.institutionSector || 'Private'}{' '}
+                      {institution.institutionType || 'School'}
                     </Typography>
                   </Box>
                 </Box>
@@ -556,10 +560,10 @@ export default function SchoolInfo() {
                   </Avatar>
                   <Box>
                     <Typography variant="caption" color="text.secondary">
-                      School Unique ID
+                      Institution Unique ID
                     </Typography>
                     <Typography variant="body2" fontWeight={600}>
-                      {school.institutionUniqueId || 'Not available'}
+                      {institution.institutionUniqueId || 'Not available'}
                     </Typography>
                   </Box>
                 </Box>
@@ -573,8 +577,8 @@ export default function SchoolInfo() {
                       Affiliation Board
                     </Typography>
                     <Typography variant="body2" fontWeight={600}>
-                      {school.affiliationBoard || 'Not specified'}
-                      {school.affiliationNumber ? ` (${school.affiliationNumber})` : ''}
+                      {institution.affiliationBoard || 'Not specified'}
+                      {institution.affiliationNumber ? ` (${institution.affiliationNumber})` : ''}
                     </Typography>
                   </Box>
                 </Box>
@@ -587,17 +591,17 @@ export default function SchoolInfo() {
                       Address
                     </Typography>
                     <Typography variant="body2" fontWeight={600}>
-                      {school.address?.street ? `${school.address.street}, ` : ''}
-                      {school.address?.city ? `${school.address.city}, ` : ''}
-                      {school.address?.state ? `${school.address.state}` : 'Not provided'}
-                      {school.address?.pincode ? ` - ${school.address.pincode}` : ''}
+                      {institution.address?.street ? `${institution.address.street}, ` : ''}
+                      {institution.address?.city ? `${institution.address.city}, ` : ''}
+                      {institution.address?.state ? `${institution.address.state}` : 'Not provided'}
+                      {institution.address?.pincode ? ` - ${institution.address.pincode}` : ''}
                     </Typography>
-                    {school.location?.lat && school.location?.lng && (
+                    {institution.location?.lat && institution.location?.lng && (
                       <Button
                         variant="outlined"
                         size="small"
                         sx={{ mt: 1, textTransform: 'none', py: 0.2, px: 1, fontSize: 11 }}
-                        href={`https://www.google.com/maps/search/?api=1&query=${school.location.lat},${school.location.lng}`}
+                        href={`https://www.google.com/maps/search/?api=1&query=${institution.location.lat},${institution.location.lng}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -614,10 +618,10 @@ export default function SchoolInfo() {
 
       {/* Payment Details */}
       {canViewPaymentDetails &&
-        school.paymentDetails &&
-        (school.paymentDetails.upiId ||
-          school.paymentDetails.bankAccountNumber ||
-          school.paymentDetails.upiQrCode) && (
+        institution.paymentDetails &&
+        (institution.paymentDetails.upiId ||
+          institution.paymentDetails.bankAccountNumber ||
+          institution.paymentDetails.upiQrCode) && (
           <Card
             elevation={0}
             sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, mt: 3 }}
@@ -629,49 +633,49 @@ export default function SchoolInfo() {
               <Grid container spacing={3} sx={{ mt: 0.5 }}>
                 <Grid item xs={12} md={8}>
                   <Grid container spacing={2}>
-                    {school.paymentDetails.bankAccountNumber && (
+                    {institution.paymentDetails.bankAccountNumber && (
                       <Grid item xs={12} sm={6}>
                         <Typography variant="caption" color="text.secondary">
                           Bank Account Number
                         </Typography>
                         <Typography variant="body2" fontWeight={600}>
-                          {school.paymentDetails.bankAccountNumber}
+                          {institution.paymentDetails.bankAccountNumber}
                         </Typography>
                       </Grid>
                     )}
-                    {school.paymentDetails.ifscCode && (
+                    {institution.paymentDetails.ifscCode && (
                       <Grid item xs={12} sm={6}>
                         <Typography variant="caption" color="text.secondary">
                           IFSC Code
                         </Typography>
                         <Typography variant="body2" fontWeight={600}>
-                          {school.paymentDetails.ifscCode}
+                          {institution.paymentDetails.ifscCode}
                         </Typography>
                       </Grid>
                     )}
-                    {school.paymentDetails.upiId && (
+                    {institution.paymentDetails.upiId && (
                       <Grid item xs={12} sm={6}>
                         <Typography variant="caption" color="text.secondary">
                           UPI ID
                         </Typography>
                         <Typography variant="body2" fontWeight={600}>
-                          {school.paymentDetails.upiId}
+                          {institution.paymentDetails.upiId}
                         </Typography>
                       </Grid>
                     )}
-                    {school.paymentDetails.upiNumber && (
+                    {institution.paymentDetails.upiNumber && (
                       <Grid item xs={12} sm={6}>
                         <Typography variant="caption" color="text.secondary">
                           UPI Number
                         </Typography>
                         <Typography variant="body2" fontWeight={600}>
-                          {school.paymentDetails.upiNumber}
+                          {institution.paymentDetails.upiNumber}
                         </Typography>
                       </Grid>
                     )}
                   </Grid>
                 </Grid>
-                {school.paymentDetails.upiQrCode && (
+                {institution.paymentDetails.upiQrCode && (
                   <Grid
                     item
                     xs={12}
@@ -692,7 +696,7 @@ export default function SchoolInfo() {
                       }}
                     >
                       <img
-                        src={school.paymentDetails.upiQrCode}
+                        src={institution.paymentDetails.upiQrCode}
                         alt="UPI QR Code"
                         style={{ width: 140, height: 140, objectFit: 'contain', borderRadius: 4 }}
                       />

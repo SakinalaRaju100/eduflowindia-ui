@@ -56,28 +56,28 @@ export default function TopBar({
 
   // console.log('user :>> ', user);
 
-  const [schoolData, setSchoolData] = useState(null);
+  const [schoolData, setInstitutionData] = useState(null);
   const [selectedYear, setSelectedYear] = useState('');
 
   useEffect(() => {
-    // Check if school is populated as an object, otherwise it's just an ID string.
-    if (user?.school && typeof user.school === 'object') {
-      setSchoolData(user.school);
-      const currentAyObj = user.school.academicYears?.find((ay) => ay.isCurrent);
+    // Check if institution is populated as an object, otherwise it's just an ID string.
+    if (user?.institution && typeof user.institution === 'object') {
+      setInstitutionData(user.institution);
+      const currentAyObj = user.institution.academicYears?.find((ay) => ay.isCurrent);
       const currentAy = currentAyObj?.year;
       if (currentAy) {
         setSelectedYear(currentAy);
         if (onYearChange) onYearChange(currentAy, currentAyObj);
-      } else if (user.school.currentAcademicYear) {
-        setSelectedYear(user.school.currentAcademicYear);
-        const fallbackObj = user.school.academicYears?.find(
-          (ay) => ay.year === user.school.currentAcademicYear,
+      } else if (user.institution.currentAcademicYear) {
+        setSelectedYear(user.institution.currentAcademicYear);
+        const fallbackObj = user.institution.academicYears?.find(
+          (ay) => ay.year === user.institution.currentAcademicYear,
         );
-        if (onYearChange) onYearChange(user.school.currentAcademicYear, fallbackObj);
+        if (onYearChange) onYearChange(user.institution.currentAcademicYear, fallbackObj);
       }
-    } else if (user?.school && typeof user.school === 'string') {
+    } else if (user?.institution && typeof user.institution === 'string') {
       console.warn(
-        "School is just an ID. Make sure to use .populate('school') in your backend Auth controller!",
+        "Institution is just an ID. Make sure to use .populate('institution') in your backend Auth controller!",
       );
     }
   }, [user]);

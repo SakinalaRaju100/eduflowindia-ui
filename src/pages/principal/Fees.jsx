@@ -82,7 +82,7 @@ export default function PrincipalFees() {
   const classrooms = clsData?.data?.data || [];
   const students = studentsData?.data?.data || [];
 
-  const academicYears = user?.school?.academicYears || [
+  const academicYears = user?.institution?.academicYears || [
     { year: '2022-2023', startDate: '2022-04-01', endDate: '2023-03-31', isCurrent: false },
     { year: '2023-2024', startDate: '2023-04-01', endDate: '2024-03-31', isCurrent: true },
   ];

@@ -90,7 +90,7 @@ const getDefaultForm = () => ({
   principalPhone: '',
 });
 
-export default function SchoolForm({
+export default function InstitutionForm({
   initialData = {},
   onSubmit,
   isSubmitting = false,
@@ -349,7 +349,7 @@ export default function SchoolForm({
       <Grid container spacing={3}>
         <Grid item xs={12} md={3} sx={{ textAlign: 'center' }}>
           <Typography variant="subtitle2" fontWeight={700} gutterBottom>
-            School Logo
+            Institution Logo
           </Typography>
           <Box sx={{ position: 'relative', display: 'inline-block' }}>
             <Avatar
@@ -418,9 +418,9 @@ export default function SchoolForm({
             </Grid>
 
             {[
-              ['name', 'School Name', 6],
-              ['institutionUniqueId', 'School Unique ID', 6],
-              ['email', 'School Email', 6],
+              ['name', 'Institution Name', 6],
+              ['institutionUniqueId', 'Institution Unique ID', 6],
+              ['email', 'Institution Email', 6],
               ['phone', 'Phone', 6],
               ['website', 'Website', 6],
               ['affiliationNumber', 'Affiliation Number', 6],
@@ -454,7 +454,7 @@ export default function SchoolForm({
                             ? '✅ Available'
                             : isNew
                               ? 'Auto-generated. Must be unique.'
-                              : 'School ID cannot be changed.'
+                              : 'Institution ID cannot be changed.'
                         : ''
                     }
                   />
@@ -557,7 +557,7 @@ export default function SchoolForm({
           )}
 
           <Typography variant="subtitle2" fontWeight={700} sx={{ mt: 3, mb: 2 }}>
-            School Information
+            Institution Information
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12}>
@@ -566,7 +566,7 @@ export default function SchoolForm({
                 multiline
                 rows={3}
                 size="small"
-                label="About School"
+                label="About Institution"
                 value={form.aboutInstitute}
                 onChange={(e) => handleChange('aboutInstitute', e.target.value)}
               />
@@ -577,7 +577,7 @@ export default function SchoolForm({
                 multiline
                 rows={3}
                 size="small"
-                label="School Motive"
+                label="Institution Motive"
                 value={form.institutionMotive}
                 onChange={(e) => handleChange('institutionMotive', e.target.value)}
               />
@@ -748,7 +748,7 @@ export default function SchoolForm({
           </Grid>
 
           <Typography variant="subtitle2" fontWeight={700} sx={{ mt: 3, mb: 1 }}>
-            School Images (Max 3)
+            Institution Images (Max 3)
           </Typography>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
             {form.images.map((img, i) => (
@@ -811,7 +811,7 @@ export default function SchoolForm({
               {isSubmitting ? (
                 <CircularProgress size={20} color="inherit" />
               ) : (
-                'Save School Details'
+                'Save Institution Details'
               )}
             </Button>
           </Box>
@@ -839,7 +839,7 @@ export default function SchoolForm({
           <Box
             component="img"
             src={viewImage}
-            alt="School"
+            alt="Institution"
             sx={{ width: '100%', maxHeight: '80vh', objectFit: 'contain' }}
           />
         </DialogContent>
@@ -861,7 +861,7 @@ export default function SchoolForm({
             ? 'Adjust Logo'
             : cropType === 'upiQrCode'
               ? 'Adjust QR Code'
-              : `Adjust School Image (${imagesToCrop.length} remaining)`}
+              : `Adjust Institution Image (${imagesToCrop.length} remaining)`}
         </DialogTitle>
         <DialogContent sx={{ p: 0, height: 400, position: 'relative', bgcolor: '#111' }}>
           {cropImage && (

@@ -19,7 +19,7 @@ export default function RefundPolicy() {
             <Typography variant="body2" color="text.secondary" paragraph>
               Refunds are subject to the policies of the respective educational institution you are
               enrolled in. EduFlow acts as a platform for fee collection and does not directly
-              dictate or authorize refund eligibility for school fees.
+              dictate or authorize refund eligibility for institution fees.
             </Typography>
             <Typography variant="h6" fontWeight={700} sx={{ mt: 4, mb: 1 }}>
               2. Processing Time
@@ -34,8 +34,8 @@ export default function RefundPolicy() {
             </Typography>
             <Typography variant="body2" color="text.secondary" paragraph>
               Certain fees such as application fees, late fees, convenience fees, and specific
-              administrative charges may be strictly non-refundable. Please refer to your school's
-              specific fee structure guidelines for more details.
+              administrative charges may be strictly non-refundable. Please refer to your
+              institution's specific fee structure guidelines for more details.
             </Typography>
             {/* Add more sections as necessary for your application */}
           </CardContent>

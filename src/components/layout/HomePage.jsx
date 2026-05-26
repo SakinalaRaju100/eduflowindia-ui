@@ -95,7 +95,7 @@ const CAREERS = [
   },
   {
     id: 2,
-    schoolName: 'Delhi Public School',
+    schoolName: 'Delhi Public Institution',
     institutionUniqueId: 'dps',
     schoolLogo: 'https://ui-avatars.com/api/?name=DPS&background=2E7D32&color=fff',
     title: 'Primary School Coordinator',
@@ -108,7 +108,7 @@ const CAREERS = [
 ];
 
 const customIcon = new L.divIcon({
-  className: 'school-custom-marker',
+  className: 'institution-custom-marker',
   html: '<div style="background-color: #4CAF50; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"><img src="https://img.icons8.com/ios-filled/50/ffffff/school.png" style="width: 20px; height: 20px;" /></div>',
   iconSize: [36, 36],
   iconAnchor: [18, 18],
@@ -123,7 +123,7 @@ const userIcon = new L.divIcon({
   popupAnchor: [0, -11],
 });
 
-const getDummySchools = (lat, lng) => [
+const getDummyInstitutions = (lat, lng) => [
   {
     id: 1,
     name: 'Greenwood High School',
@@ -186,7 +186,7 @@ export default function HomePage() {
   const theme = useTheme();
   const navigate = useNavigate();
   const [userLoc, setUserLoc] = useState(null);
-  const [schools, setSchools] = useState([]);
+  const [schools, setInstitutions] = useState([]);
   const [commentsDrawerOpen, setCommentsDrawerOpen] = useState(false);
   const [selectedFeedId, setSelectedFeedId] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
@@ -212,13 +212,13 @@ export default function HomePage() {
   useEffect(() => {
     const setFallback = () => {
       setUserLoc({ lat: 17.44, lng: 78.38 });
-      setSchools(getDummySchools(17.44, 78.38));
+      setInstitutions(getDummyInstitutions(17.44, 78.38));
     };
 
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((pos) => {
         setUserLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setSchools(getDummySchools(pos.coords.latitude, pos.coords.longitude));
+        setInstitutions(getDummyInstitutions(pos.coords.latitude, pos.coords.longitude));
       }, setFallback);
     } else {
       setFallback();
@@ -242,11 +242,15 @@ export default function HomePage() {
             <strong>You are here</strong>
           </Popup>
         </Marker>
-        {schools.map((school) => (
-          <Marker key={school.id} position={[school.lat, school.lng]} icon={customIcon}>
+        {schools.map((institution) => (
+          <Marker
+            key={institution.id}
+            position={[institution.lat, institution.lng]}
+            icon={customIcon}
+          >
             <Tooltip direction="bottom" offset={[0, 18]} permanent>
               <Typography variant="caption" fontWeight={700} sx={{ fontSize: 10 }}>
-                {school.name}
+                {institution.name}
               </Typography>
             </Tooltip>
             <Popup>
@@ -254,7 +258,7 @@ export default function HomePage() {
                 variant="subtitle2"
                 fontWeight={700}
                 onClick={() => {
-                  navigate(`/${school.uniqueId}`);
+                  navigate(`/${institution.uniqueId}`);
                 }}
                 sx={{
                   cursor: 'pointer',
@@ -262,11 +266,12 @@ export default function HomePage() {
                   '&:hover': { textDecoration: 'underline' },
                 }}
               >
-                {school.name}
+                {institution.name}
               </Typography>
-              <Typography variant="body2">{school.address}</Typography>
+              <Typography variant="body2">{institution.address}</Typography>
               <Typography variant="body2" color="primary" sx={{ mt: 0.5 }}>
-                Distance: {getDistance(userLoc.lat, userLoc.lng, school.lat, school.lng)} km
+                Distance: {getDistance(userLoc.lat, userLoc.lng, institution.lat, institution.lng)}{' '}
+                km
               </Typography>
               <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
                 <Button
@@ -274,7 +279,7 @@ export default function HomePage() {
                   size="small"
                   fullWidth
                   onClick={() => {
-                    navigate(`/${school.uniqueId}`);
+                    navigate(`/${institution.uniqueId}`);
                   }}
                   sx={{ textTransform: 'none', py: 0.2, px: 1 }}
                 >
@@ -285,7 +290,7 @@ export default function HomePage() {
                   size="small"
                   fullWidth
                   sx={{ textTransform: 'none', py: 0.2, px: 1 }}
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${school.lat},${school.lng}`}
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${institution.lat},${institution.lng}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -611,7 +616,7 @@ export default function HomePage() {
                   User {c}
                 </Typography>
                 <Typography variant="body2" sx={{ mt: 0.5 }}>
-                  This is a great post! So proud of the school and the students.
+                  This is a great post! So proud of the institution and the students.
                 </Typography>
                 <Typography
                   variant="caption"

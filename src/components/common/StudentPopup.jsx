@@ -133,7 +133,7 @@ export default function StudentPopup({ studentId, open, onClose, onEdit, onToggl
   const results = data?.results || [];
   const fees = data?.fees;
 
-  const schoolData = typeof user?.school === 'object' ? user.school : null;
+  const schoolData = typeof user?.institution === 'object' ? user.institution : null;
   const uid = String(student?.userId?._id || student?.userId);
 
   const enrolledYears = classrooms
@@ -495,7 +495,7 @@ export default function StudentPopup({ studentId, open, onClose, onEdit, onToggl
                       ? format(new Date(student.admissionDate), 'dd MMM yyyy')
                       : '-',
                   ],
-                  ['Previous School', student?.previousSchool || '-'],
+                  ['Previous Institution', student?.previousInstitution || '-'],
                   ['Academic Year', student?.academicYear],
                 ].map(([label, value]) => (
                   <Grid item xs={12} sm={6} key={label}>

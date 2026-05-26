@@ -20,16 +20,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { superadminAPI } from '@/api/client';
 import DataTable from '@/components/common/DataTable';
 import StatCard from '@/components/common/StatCard';
-import SchoolForm from '@/components/common/SchoolForm';
+import InstitutionForm from '@/components/common/InstitutionForm';
 
 export default function SADashboard() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [editSchool, setEditSchool] = useState(null);
+  const [editInstitution, setEditInstitution] = useState(null);
   const [error, setError] = useState('');
   const { data: sd, isLoading } = useQuery({
     queryKey: ['schools'],
-    queryFn: () => superadminAPI.getSchools(),
+    queryFn: () => superadminAPI.getInstitutions(),
   });
   const { data: statsData } = useQuery({
     queryKey: ['sa-stats'],
@@ -40,23 +40,25 @@ export default function SADashboard() {
 
   const mutation = useMutation({
     mutationFn: (d) =>
-      editSchool ? superadminAPI.updateSchool(editSchool._id, d) : superadminAPI.createSchool(d),
+      editInstitution
+        ? superadminAPI.updateInstitution(editInstitution._id, d)
+        : superadminAPI.createInstitution(d),
     onSuccess: () => {
       qc.invalidateQueries(['schools']);
       qc.invalidateQueries(['sa-stats']);
       setOpen(false);
-      setEditSchool(null);
+      setEditInstitution(null);
       setError('');
     },
     onError: (err) => setError(err.response?.data?.message || 'Failed'),
   });
   const delMutation = useMutation({
-    mutationFn: (id) => superadminAPI.deleteSchool(id),
+    mutationFn: (id) => superadminAPI.deleteInstitution(id),
     onSuccess: () => qc.invalidateQueries(['schools']),
   });
 
   const openEdit = (s) => {
-    setEditSchool(s);
+    setEditInstitution(s);
     setError('');
     setOpen(true);
   };
@@ -147,7 +149,7 @@ export default function SADashboard() {
         <Grid item xs={6} sm={3}>
           <StatCard
             title="Total Institutions"
-            value={stats.totalSchools}
+            value={stats.totalInstitutions}
             icon={<School />}
             color="#1565C0"
             loading={!statsData}
@@ -156,7 +158,7 @@ export default function SADashboard() {
         <Grid item xs={6} sm={3}>
           <StatCard
             title="Active Institutions"
-            value={stats.activeSchools}
+            value={stats.activeInstitutions}
             icon={<School />}
             color="#2E7D32"
             loading={!statsData}
@@ -174,7 +176,7 @@ export default function SADashboard() {
         <Grid item xs={6} sm={3}>
           <StatCard
             title="Inactive"
-            value={(stats.totalSchools || 0) - (stats.activeSchools || 0)}
+            value={(stats.totalInstitutions || 0) - (stats.activeInstitutions || 0)}
             icon={<School />}
             color="#E65100"
             loading={!statsData}
@@ -193,7 +195,7 @@ export default function SADashboard() {
               variant="contained"
               startIcon={<Add />}
               onClick={() => {
-                setEditSchool(null);
+                setEditInstitution(null);
                 setError('');
                 setOpen(true);
               }}
@@ -216,7 +218,7 @@ export default function SADashboard() {
           sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
         >
           <Typography variant="h6" fontWeight={700}>
-            {editSchool ? 'Edit Institution' : 'Register New Institution'}
+            {editInstitution ? 'Edit Institution' : 'Register New Institution'}
           </Typography>
           <IconButton onClick={() => setOpen(false)} size="small">
             <Close />
@@ -229,9 +231,9 @@ export default function SADashboard() {
                 {error}
               </Alert>
             )}
-            <SchoolForm
-              initialData={editSchool || {}}
-              isNew={!editSchool}
+            <InstitutionForm
+              initialData={editInstitution || {}}
+              isNew={!editInstitution}
               existingIds={schools.map((s) => s.institutionUniqueId)}
               onSubmit={(data) => mutation.mutate(data)}
               isSubmitting={mutation.isPending}

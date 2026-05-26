@@ -121,7 +121,7 @@ export default function LoginPage() {
             EduFlow
           </Typography>
           <Typography variant="h6" sx={{ opacity: 0.85, fontWeight: 400, mb: 4 }}>
-            School Management System
+            Institution Management System
           </Typography>
           {[
             'Multi-role access control',

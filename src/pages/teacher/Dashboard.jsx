@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { classroomAPI, announcementAPI, leaveAPI } from '@/api/client';
 import StatCard from '@/components/common/StatCard';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import SchoolBanner from '../../components/common/SchoolBanner';
+import InstitutionBanner from '../../components/common/InstitutionBanner';
 
 export default function TeacherDashboard() {
   const { data: cls } = useQuery({ queryKey: ['t-classes'], queryFn: () => classroomAPI.getAll() });
@@ -69,7 +69,7 @@ export default function TeacherDashboard() {
 
   return (
     <Box>
-      <SchoolBanner />
+      <InstitutionBanner />
       <Grid container spacing={2.5} sx={{ mb: 3 }}>
         <Grid onClick={() => navigate('/teacher/classes')} item xs={6} sm={3}>
           <StatCard

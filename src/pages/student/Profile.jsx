@@ -167,7 +167,7 @@ export default function StudentProfile() {
                   profile?.dateOfBirth ? format(new Date(profile.dateOfBirth), 'dd MMM yyyy') : '—',
                 ],
                 ['Blood Group', profile?.bloodGroup || '—'],
-                ['Previous School', profile?.previousSchool || '—'],
+                ['Previous Institution', profile?.previousInstitution || '—'],
                 ['Academic Year', profile?.academicYear || '—'],
               ].map(([label, value], i) => (
                 <Box key={i}>

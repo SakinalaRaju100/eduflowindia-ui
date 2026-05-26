@@ -49,7 +49,7 @@ const NAV_CONFIG = {
   superadmin: [{ label: 'Institutions', icon: <CorporateFare />, path: '/superadmin' }],
   principal: [
     { label: 'Dashboard', icon: <Dashboard />, path: '/principal' },
-    { label: 'School Profile', icon: <CorporateFare />, path: '/principal/profile' },
+    { label: 'Institution Profile', icon: <CorporateFare />, path: '/principal/profile' },
     { label: 'Classrooms', icon: <Class />, path: '/principal/classrooms' },
     { label: 'Students', icon: <People />, path: '/principal/students' },
     { label: 'Teachers', icon: <Person />, path: '/principal/teachers' },
@@ -72,7 +72,7 @@ const NAV_CONFIG = {
     { label: 'Messages', icon: <Message />, path: '/teacher/messages' },
   ],
   student: [
-    { label: 'School', icon: <CorporateFare />, path: '/student/school' },
+    { label: 'Institution', icon: <CorporateFare />, path: '/student/Institution' },
     { label: 'My Profile', icon: <Person />, path: '/student/profile' },
     { label: 'Calendar', icon: <CalendarMonth />, path: '/student/calendar' },
     { label: 'Exams & Results', icon: <Grade />, path: '/student/exams' },
@@ -81,7 +81,7 @@ const NAV_CONFIG = {
     { label: 'Messages', icon: <Message />, path: '/student/messages' },
   ],
   parent: [
-    { label: 'School', icon: <CorporateFare />, path: '/parent/school' },
+    { label: 'Institution', icon: <CorporateFare />, path: '/parent/Institution' },
     { label: 'My Children', icon: <HomeWork />, path: '/parent' },
     { label: 'Messages', icon: <Message />, path: '/parent/messages' },
   ],
@@ -107,7 +107,11 @@ export default function Sidebar({ open, onToggle, isMobile, onOpenProfile }) {
     const studentId = location.pathname.split('/parent/child/')[1].split('/')[0];
     navItems = [
       { label: 'Back to Children', icon: <ChevronLeft />, path: '/parent' },
-      { label: 'School', icon: <CorporateFare />, path: `/parent/child/${studentId}/school` },
+      {
+        label: 'Institution',
+        icon: <CorporateFare />,
+        path: `/parent/child/${studentId}/Institution`,
+      },
       { label: 'Child Profile', icon: <Person />, path: `/parent/child/${studentId}/profile` },
       { label: 'Calendar', icon: <CalendarMonth />, path: `/parent/child/${studentId}/calendar` },
       { label: 'Exams & Results', icon: <Grade />, path: `/parent/child/${studentId}/exams` },
@@ -222,7 +226,7 @@ export default function Sidebar({ open, onToggle, isMobile, onOpenProfile }) {
         </IconButton>
       </Box>
 
-      {/* School name */}
+      {/* Institution name */}
       {isExpanded && user && user.role !== 'superadmin' && (
         <Box sx={{ px: 2.5, py: 1.5, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
           <Typography
@@ -234,7 +238,7 @@ export default function Sidebar({ open, onToggle, isMobile, onOpenProfile }) {
               fontSize: 10,
             }}
           >
-            School
+            Institution
           </Typography>
           <Typography
             variant="body2"
@@ -248,7 +252,7 @@ export default function Sidebar({ open, onToggle, isMobile, onOpenProfile }) {
               textOverflow: 'ellipsis',
             }}
           >
-            {user?.school?.name || ''}
+            {user?.institution?.name || ''}
           </Typography>
         </Box>
       )}

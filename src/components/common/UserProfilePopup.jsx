@@ -93,10 +93,10 @@ export default function UserProfilePopup({ open, onClose }) {
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5 }}>
             <Typography variant="caption" color="text.secondary">
-              School
+              Institution
             </Typography>
             <Typography variant="body2" fontWeight={600}>
-              {user.school?.name || 'N/A'}
+              {user.institution?.name || 'N/A'}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5 }}>

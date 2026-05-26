@@ -17,7 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { COLOR_THEMES } from '@/theme/themes';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/api/client';
-import SchoolForm from '@/components/common/SchoolForm';
+import InstitutionForm from '@/components/common/InstitutionForm';
 
 export default function PrincipalSettings() {
   const { user, updatePreferences } = useAuth();
@@ -28,22 +28,22 @@ export default function PrincipalSettings() {
   const save = () => updatePreferences({ theme: themeMode, themeColor });
 
   const { data: schoolData, isLoading } = useQuery({
-    queryKey: ['my-school'],
-    queryFn: () => api.get('/principal/school-profile').then((res) => res.data.data),
+    queryKey: ['my-institution'],
+    queryFn: () => api.get('/principal/Institution-profile').then((res) => res.data.data),
   });
 
   const [msg, setMsg] = useState(null);
 
   const mutation = useMutation({
-    mutationFn: (d) => api.put('/principal/school-profile', d),
+    mutationFn: (d) => api.put('/principal/Institution-profile', d),
     onSuccess: () => {
-      qc.invalidateQueries(['my-school']);
-      setMsg({ type: 'success', text: 'School profile updated successfully' });
+      qc.invalidateQueries(['my-institution']);
+      setMsg({ type: 'success', text: 'Institution profile updated successfully' });
     },
     onError: (err) =>
       setMsg({
         type: 'error',
-        text: err.response?.data?.message || 'Failed to update school profile',
+        text: err.response?.data?.message || 'Failed to update institution profile',
       }),
   });
 
@@ -108,7 +108,7 @@ export default function PrincipalSettings() {
       <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
         <CardContent sx={{ p: 3 }}>
           <Typography variant="h6" fontWeight={700} gutterBottom>
-            School Profile Settings
+            Institution Profile Settings
           </Typography>
           {msg && (
             <Alert severity={msg.type} sx={{ mb: 2 }} onClose={() => setMsg(null)}>
@@ -118,7 +118,7 @@ export default function PrincipalSettings() {
           {isLoading ? (
             <CircularProgress />
           ) : (
-            <SchoolForm
+            <InstitutionForm
               initialData={schoolData || {}}
               onSubmit={(data) => mutation.mutate(data)}
               isSubmitting={mutation.isPending}

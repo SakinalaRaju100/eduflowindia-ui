@@ -49,7 +49,7 @@ import StudentMessages from '@/pages/student/Messages';
 // Parent
 import ParentDashboard from '@/pages/parent/Dashboard';
 import ParentMessages from '@/pages/parent/Messages';
-import SchoolInfo from './components/common/SchoolInfo';
+import InstitutionInfo from './components/common/InstitutionInfo';
 import HomePage from '@/components/layout/HomePage';
 import TermsAndConditions from '@/pages/public/TermsAndConditions';
 import PrivacyPolicy from '@/pages/public/PrivacyPolicy';
@@ -155,7 +155,7 @@ export default function App() {
           }
         >
           <Route index element={<PrincipalDashboard />} />
-          <Route path="profile" element={<SchoolInfo />} />
+          <Route path="profile" element={<InstitutionInfo />} />
           <Route path="classrooms" element={<PrincipalClassrooms />} />
           <Route path="classrooms/:id" element={<PrincipalClassroomDetail />} />
           <Route path="students" element={<PrincipalStudents />} />
@@ -199,7 +199,7 @@ export default function App() {
           }
         >
           <Route path="profile" element={<StudentProfile />} />
-          <Route path="school" element={<SchoolInfo />} />
+          <Route path="institution" element={<InstitutionInfo />} />
           <Route path="calendar" element={<StudentCalendar />} />
           <Route path="exams" element={<StudentExams />} />
           <Route path="fees" element={<StudentFees />} />
@@ -217,10 +217,10 @@ export default function App() {
           }
         >
           <Route index element={<ParentDashboard />} />
-          <Route path="school" element={<SchoolInfo />} />
+          <Route path="institution" element={<InstitutionInfo />} />
           <Route path="child/:studentId" element={<Navigate to="profile" replace />} />
           <Route path="child/:studentId/profile" element={<StudentProfile />} />
-          <Route path="child/:studentId/school" element={<SchoolInfo />} />
+          <Route path="child/:studentId/Institution" element={<InstitutionInfo />} />
           <Route path="child/:studentId/calendar" element={<StudentCalendar />} />
           <Route path="child/:studentId/exams" element={<StudentExams />} />
           <Route path="child/:studentId/fees" element={<StudentFees />} />
@@ -229,8 +229,8 @@ export default function App() {
           <Route path="messages" element={<ParentMessages />} />
         </Route>
 
-        {/* Public School Profile */}
-        <Route path="/:institutionUniqueId" element={<SchoolInfo />} />
+        {/* Public Institution Profile */}
+        <Route path="/:institutionUniqueId" element={<InstitutionInfo />} />
 
         {/* Home Route */}
         <Route element={<AppShell />}>
