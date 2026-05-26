@@ -27,6 +27,8 @@ import PrincipalLeaves from '@/pages/principal/Leaves';
 import PrincipalAnnouncements from '@/pages/principal/Announcements';
 import PrincipalReports from '@/pages/principal/Reports';
 import PrincipalSettings from '@/pages/principal/Settings';
+// 1. Import the newly created Inquiries component at the top of the file
+import Inquiries from './pages/principal/Inquiries';
 
 // Teacher
 import TeacherDashboard from '@/pages/teacher/Dashboard';
@@ -56,11 +58,11 @@ import PrivacyPolicy from '@/pages/public/PrivacyPolicy';
 import RefundPolicy from '@/pages/public/RefundPolicy';
 
 const ROLE_HOME = {
-  superadmin: '/superadmin',
+  superadmin: '/superadmin/home',
   principal: '/principal',
-  teacher: '/teacher',
-  student: '/student/profile',
-  parent: '/parent',
+  teacher: '/teacher/home',
+  student: '/student/home',
+  parent: '/parent/home',
 };
 
 const ProtectedRoute = ({ children, roles }) => {
@@ -143,6 +145,7 @@ export default function App() {
           }
         >
           <Route index element={<SADashboard />} />
+          <Route path="home" element={<HomePage />} />
         </Route>
 
         {/* Principal */}
@@ -155,6 +158,7 @@ export default function App() {
           }
         >
           <Route index element={<PrincipalDashboard />} />
+          <Route path="home" element={<HomePage />} />
           <Route path="profile" element={<InstitutionInfo />} />
           <Route path="classrooms" element={<PrincipalClassrooms />} />
           <Route path="classrooms/:id" element={<PrincipalClassroomDetail />} />
@@ -168,6 +172,7 @@ export default function App() {
           <Route path="announcements" element={<PrincipalAnnouncements />} />
           <Route path="reports" element={<PrincipalReports />} />
           <Route path="settings" element={<PrincipalSettings />} />
+          <Route path="inquiries" element={<Inquiries />} />
         </Route>
 
         {/* Teacher */}
@@ -180,6 +185,7 @@ export default function App() {
           }
         >
           <Route index element={<TeacherDashboard />} />
+          <Route path="home" element={<HomePage />} />
           <Route path="classes" element={<TeacherClasses />} />
           <Route path="classes/:id" element={<TeacherClassroomDetail />} />
           <Route path="exams" element={<TeacherExams />} />
@@ -198,6 +204,7 @@ export default function App() {
             </ProtectedRoute>
           }
         >
+          <Route path="home" element={<HomePage />} />
           <Route path="profile" element={<StudentProfile />} />
           <Route path="institution" element={<InstitutionInfo />} />
           <Route path="calendar" element={<StudentCalendar />} />
@@ -217,6 +224,7 @@ export default function App() {
           }
         >
           <Route index element={<ParentDashboard />} />
+          <Route path="home" element={<HomePage />} />
           <Route path="institution" element={<InstitutionInfo />} />
           <Route path="child/:studentId" element={<Navigate to="profile" replace />} />
           <Route path="child/:studentId/profile" element={<StudentProfile />} />

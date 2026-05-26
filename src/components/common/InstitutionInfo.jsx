@@ -34,6 +34,7 @@ import {
   ChatBubble,
   Edit,
   Add,
+  Delete,
   Close,
   PhotoCamera,
   School as SchoolIcon,
@@ -61,70 +62,8 @@ export default function InstitutionInfo() {
     retry: false,
   });
 
-  // Dummy data for Instagram-style feeds
-  const DUMMY_POSTS = [
-    {
-      id: 1,
-      image: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=600&q=80',
-      likes: 342,
-      comments: 45,
-    },
-    {
-      id: 2,
-      image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&q=80',
-      likes: 512,
-      comments: 89,
-    },
-    {
-      id: 3,
-      image: 'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=600&q=80',
-      likes: 289,
-      comments: 12,
-    },
-    {
-      id: 4,
-      image: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600&q=80',
-      likes: 410,
-      comments: 33,
-    },
-    {
-      id: 5,
-      image: 'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=600&q=80',
-      likes: 198,
-      comments: 8,
-    },
-    {
-      id: 6,
-      image: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=600&q=80',
-      likes: 654,
-      comments: 102,
-    },
-  ];
-
-  const [localPosts, setLocalPosts] = useState(DUMMY_POSTS);
-
-  const DUMMY_JOBS = [
-    {
-      id: 1,
-      title: 'Mathematics Teacher (Senior Secondary)',
-      type: 'Full-time',
-      location: 'Hyderabad, Telangana',
-      description:
-        "We are looking for an experienced Mathematics teacher for grades 11 and 12. Must have a master's degree in Mathematics and a B.Ed.",
-      postedAt: '2 days ago',
-    },
-    {
-      id: 2,
-      title: 'Primary Institution Coordinator',
-      type: 'Full-time',
-      location: 'Hyderabad, Telangana',
-      description:
-        'Seeking a dynamic and enthusiastic coordinator for our primary section. Minimum 5 years of teaching experience required.',
-      postedAt: '1 week ago',
-    },
-  ];
-  const [localJobs, setLocalJobs] = useState(DUMMY_JOBS);
   const [addJobOpen, setAddJobOpen] = useState(false);
+  const [isSubmittingJob, setIsSubmittingJob] = useState(false);
   const [jobForm, setJobForm] = useState({
     title: '',
     type: 'Full-time',
@@ -135,8 +74,31 @@ export default function InstitutionInfo() {
   const [addPostOpen, setAddPostOpen] = useState(false);
   const [postForm, setPostForm] = useState({ caption: '', image: null });
   const [isUploading, setIsUploading] = useState(false);
+  const [isSubmittingPost, setIsSubmittingPost] = useState(false);
+
+  const [interestOpen, setInterestOpen] = useState(false);
+  const [interestForm, setInterestForm] = useState({ name: '', phone: '', email: '', message: '' });
+  const [isSubmittingInterest, setIsSubmittingInterest] = useState(false);
 
   const scrollRef = useRef(null);
+
+  const institution = institutionUniqueId
+    ? publicInstitutionData
+    : user?.institution && typeof user.institution === 'object'
+      ? user.institution
+      : null;
+
+  const { data: dbJobs = [], refetch: refetchJobs } = useQuery({
+    queryKey: ['jobs', institution?._id],
+    queryFn: () => api.get(`/auth/schools/${institution._id}/jobs`).then((res) => res.data.data),
+    enabled: !!institution?._id,
+  });
+
+  const { data: dbPosts = [], refetch: refetchPosts } = useQuery({
+    queryKey: ['posts', institution?._id],
+    queryFn: () => api.get(`/auth/schools/${institution._id}/posts`).then((res) => res.data.data),
+    enabled: !!institution?._id,
+  });
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -144,14 +106,20 @@ export default function InstitutionInfo() {
 
     let animationId;
     let isHovered = false;
+    let currentScroll = el.scrollLeft;
 
     const scrollStep = () => {
       if (!isHovered && el) {
-        el.scrollLeft += 1;
+        currentScroll += 0.3; // Slower scroll speed
+        el.scrollLeft = currentScroll;
+
         // Loop back seamlessly when reaching the end
-        if (el.scrollLeft >= el.scrollWidth - el.clientWidth) {
+        if (Math.ceil(el.scrollLeft) >= el.scrollWidth - el.clientWidth) {
+          currentScroll = 0;
           el.scrollLeft = 0;
         }
+      } else if (el) {
+        currentScroll = el.scrollLeft; // Sync with user's manual scroll
       }
       animationId = requestAnimationFrame(scrollStep);
     };
@@ -195,23 +163,28 @@ export default function InstitutionInfo() {
   };
 
   const handleAddPost = async () => {
+    setIsSubmittingPost(true);
     try {
-      // Simulate API Call - Append post locally
-      setLocalPosts([
-        {
-          id: Date.now(),
-          image: postForm.image,
-          caption: postForm.caption,
-          likes: 0,
-          comments: 0,
-        },
-        ...localPosts,
-      ]);
+      await api.post('/auth/posts', postForm);
       showSnackbar('Post added successfully!', 'success');
       setAddPostOpen(false);
       setPostForm({ caption: '', image: null });
+      refetchPosts();
     } catch (error) {
       console.error('Failed to add post', error);
+      showSnackbar(error.response?.data?.message || 'Failed to add post', 'error');
+    } finally {
+      setIsSubmittingPost(false);
+    }
+  };
+
+  const handleRemovePost = async (postId) => {
+    try {
+      await api.delete(`/auth/posts/${postId}`);
+      showSnackbar('Post removed successfully', 'success');
+      refetchPosts();
+    } catch (error) {
+      showSnackbar('Failed to remove post', 'error');
     }
   };
 
@@ -220,29 +193,50 @@ export default function InstitutionInfo() {
       showSnackbar('Title and Description are required', 'warning');
       return;
     }
+    setIsSubmittingJob(true);
     try {
-      // Simulate API Call - Append job locally
-      setLocalJobs([
-        {
-          id: Date.now(),
-          ...jobForm,
-          postedAt: 'Just now',
-        },
-        ...localJobs,
-      ]);
+      await api.post('/auth/jobs', jobForm);
       showSnackbar('Job posted successfully!', 'success');
       setAddJobOpen(false);
       setJobForm({ title: '', type: 'Full-time', location: '', description: '' });
+      refetchJobs();
     } catch (error) {
-      console.error('Failed to post job', error);
+      showSnackbar(error.response?.data?.message || 'Failed to post job', 'error');
+    } finally {
+      setIsSubmittingJob(false);
     }
   };
 
-  const institution = institutionUniqueId
-    ? publicInstitutionData
-    : user?.institution && typeof user.institution === 'object'
-      ? user.institution
-      : null;
+  const handleRemoveJob = async (jobId) => {
+    try {
+      await api.delete(`/auth/jobs/${jobId}`);
+      showSnackbar('Job removed successfully', 'success');
+      refetchJobs();
+    } catch (error) {
+      showSnackbar('Failed to remove job', 'error');
+    }
+  };
+
+  const handleInterestSubmit = async () => {
+    if (!interestForm.name || !interestForm.phone) {
+      showSnackbar('Name and Phone Number are required', 'warning');
+      return;
+    }
+    setIsSubmittingInterest(true);
+    try {
+      await api.post(`/auth/schools/${institution._id}/inquiries`, interestForm);
+      showSnackbar(
+        'Your interest has been shared successfully! We will contact you soon.',
+        'success',
+      );
+      setInterestOpen(false);
+      setInterestForm({ name: '', phone: '', email: '', message: '' });
+    } catch (error) {
+      showSnackbar(error.response?.data?.message || 'Failed to submit interest', 'error');
+    } finally {
+      setIsSubmittingInterest(false);
+    }
+  };
 
   if (isLoading && institutionUniqueId)
     return (
@@ -316,7 +310,7 @@ export default function InstitutionInfo() {
       >
         <Box sx={{ textAlign: 'center', cursor: 'pointer' }}>
           <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.2 }}>
-            {institution.postsCount || localPosts.length}
+            {institution.postsCount || dbPosts.length}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Posts
@@ -425,9 +419,10 @@ export default function InstitutionInfo() {
               variant="contained"
               color="info"
               size="small"
+              onClick={() => setInterestOpen(true)}
               sx={{ borderRadius: 2, whiteSpace: 'nowrap' }}
             >
-              Contact below
+              Share your Interest
             </Button>
           </Box>
         </Alert>
@@ -813,8 +808,8 @@ export default function InstitutionInfo() {
           )}
         </Box>
         <Grid container spacing={2}>
-          {localJobs.map((job) => (
-            <Grid item xs={12} sm={6} key={job.id}>
+          {dbJobs.map((job) => (
+            <Grid item xs={12} sm={6} key={job._id}>
               <Card
                 elevation={0}
                 sx={{
@@ -838,17 +833,13 @@ export default function InstitutionInfo() {
                     {job.description}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    Posted: {job.postedAt}
+                    Posted: {new Date(job.createdAt).toLocaleDateString()}
                   </Typography>
                 </CardContent>
                 <Divider />
                 <CardActions sx={{ p: 2, justifyContent: 'flex-end' }}>
                   {isPrincipalView ? (
-                    <Button
-                      size="small"
-                      color="error"
-                      onClick={() => setLocalJobs(localJobs.filter((j) => j.id !== job.id))}
-                    >
+                    <Button size="small" color="error" onClick={() => handleRemoveJob(job._id)}>
                       Remove Post
                     </Button>
                   ) : (
@@ -868,7 +859,7 @@ export default function InstitutionInfo() {
               </Card>
             </Grid>
           ))}
-          {localJobs.length === 0 && (
+          {dbJobs.length === 0 && (
             <Grid item xs={12}>
               <Alert severity="info" sx={{ borderRadius: 2 }}>
                 No job openings currently available.
@@ -912,8 +903,8 @@ export default function InstitutionInfo() {
           )}
         </Box>
         <Grid container spacing={1}>
-          {localPosts.map((post) => (
-            <Grid item xs={4} key={post.id}>
+          {dbPosts.map((post) => (
+            <Grid item xs={4} key={post._id}>
               <Box
                 sx={{
                   position: 'relative',
@@ -924,6 +915,26 @@ export default function InstitutionInfo() {
                   '&:hover .post-img': { transform: 'scale(1.05)' },
                 }}
               >
+                {isPrincipalView && (
+                  <IconButton
+                    size="small"
+                    color="error"
+                    sx={{
+                      position: 'absolute',
+                      top: 4,
+                      right: 4,
+                      zIndex: 10,
+                      bgcolor: 'rgba(255,255,255,0.7)',
+                      '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' },
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemovePost(post._id);
+                    }}
+                  >
+                    <Delete fontSize="small" />
+                  </IconButton>
+                )}
                 <img
                   className="post-img"
                   src={post.image}
@@ -1053,11 +1064,11 @@ export default function InstitutionInfo() {
           </Button>
           <Button
             variant="contained"
-            disabled={!postForm.image || isUploading}
+            disabled={!postForm.image || isUploading || isSubmittingPost}
             onClick={handleAddPost}
             sx={{ textTransform: 'none', px: 4 }}
           >
-            Post
+            {isSubmittingPost ? <CircularProgress size={24} color="inherit" /> : 'Post'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1123,8 +1134,83 @@ export default function InstitutionInfo() {
           <Button onClick={() => setAddJobOpen(false)} sx={{ textTransform: 'none' }}>
             Cancel
           </Button>
-          <Button variant="contained" onClick={handleAddJob} sx={{ textTransform: 'none', px: 4 }}>
-            Post Job
+          <Button
+            variant="contained"
+            onClick={handleAddJob}
+            disabled={isSubmittingJob}
+            sx={{ textTransform: 'none', px: 4 }}
+          >
+            {isSubmittingJob ? <CircularProgress size={24} color="inherit" /> : 'Post Job'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Share Interest Dialog */}
+      <Dialog open={interestOpen} onClose={() => setInterestOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle
+          sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+        >
+          <Typography variant="h6" fontWeight={700}>
+            Share Your Interest
+          </Typography>
+          <IconButton onClick={() => setInterestOpen(false)}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <Divider />
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 3 }}>
+          <TextField
+            label="Full Name"
+            fullWidth
+            size="small"
+            required
+            value={interestForm.name}
+            onChange={(e) => setInterestForm({ ...interestForm, name: e.target.value })}
+          />
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Phone Number"
+                fullWidth
+                size="small"
+                required
+                value={interestForm.phone}
+                onChange={(e) => setInterestForm({ ...interestForm, phone: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Email Address (Optional)"
+                fullWidth
+                size="small"
+                type="email"
+                value={interestForm.email}
+                onChange={(e) => setInterestForm({ ...interestForm, email: e.target.value })}
+              />
+            </Grid>
+          </Grid>
+          <TextField
+            label="Query or Message"
+            fullWidth
+            multiline
+            rows={4}
+            placeholder="Let us know what you're looking for..."
+            value={interestForm.message}
+            onChange={(e) => setInterestForm({ ...interestForm, message: e.target.value })}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => setInterestOpen(false)} sx={{ textTransform: 'none' }}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="info"
+            onClick={handleInterestSubmit}
+            disabled={isSubmittingInterest}
+            sx={{ textTransform: 'none', px: 4 }}
+          >
+            {isSubmittingInterest ? <CircularProgress size={24} color="inherit" /> : 'Submit'}
           </Button>
         </DialogActions>
       </Dialog>

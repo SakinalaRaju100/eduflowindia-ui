@@ -9,7 +9,6 @@ function SlideTransition(props) {
 let globalShowSnackbar = () => {};
 // Exported function that can be imported and called anywhere
 export const showSnackbar = (message, severity = 'info') => {
-  console.log('message', message);
   globalShowSnackbar(message, severity);
 };
 
@@ -44,7 +43,7 @@ const ShowSnackbar = () => {
         onClose={handleCloseSnackbar}
         severity={snackbar.severity}
         variant="filled"
-        sx={{ width: '100%' }}
+        sx={{ width: '100%', mt: 5 }}
       >
         {snackbar.message}
       </Alert>

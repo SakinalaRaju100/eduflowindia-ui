@@ -39,6 +39,8 @@ import {
   AdminPanelSettings,
   CorporateFare,
   Payments,
+  ContactSupport,
+  Home,
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -46,8 +48,12 @@ const DRAWER_WIDTH = 260;
 const MINI_WIDTH = 72;
 
 const NAV_CONFIG = {
-  superadmin: [{ label: 'Institutions', icon: <CorporateFare />, path: '/superadmin' }],
+  superadmin: [
+    { label: 'Home', icon: <Home />, path: '/superadmin/home' },
+    { label: 'Institutions', icon: <CorporateFare />, path: '/superadmin' },
+  ],
   principal: [
+    { label: 'Home', icon: <Home />, path: '/principal/home' },
     { label: 'Dashboard', icon: <Dashboard />, path: '/principal' },
     { label: 'Institution Profile', icon: <CorporateFare />, path: '/principal/profile' },
     { label: 'Classrooms', icon: <Class />, path: '/principal/classrooms' },
@@ -59,10 +65,12 @@ const NAV_CONFIG = {
     { label: 'Calendar', icon: <CalendarMonth />, path: '/principal/calendar' },
     { label: 'Leaves', icon: <BeachAccess />, path: '/principal/leaves' },
     { label: 'Announcements', icon: <Campaign />, path: '/principal/announcements' },
+    { label: 'Inquiries', icon: <ContactSupport />, path: '/principal/inquiries' },
     // { label: 'Reports', icon: <BarChart />, path: '/principal/reports' },
     { label: 'Settings', icon: <Settings />, path: '/principal/settings' },
   ],
   teacher: [
+    { label: 'Home', icon: <Home />, path: '/teacher/home' },
     { label: 'Dashboard', icon: <Dashboard />, path: '/teacher' },
     { label: 'My Classes', icon: <Class />, path: '/teacher/classes' },
     { label: 'Exams & Results', icon: <Assignment />, path: '/teacher/exams' },
@@ -72,6 +80,7 @@ const NAV_CONFIG = {
     { label: 'Messages', icon: <Message />, path: '/teacher/messages' },
   ],
   student: [
+    { label: 'Home', icon: <Home />, path: '/student/home' },
     { label: 'Institution', icon: <CorporateFare />, path: '/student/Institution' },
     { label: 'My Profile', icon: <Person />, path: '/student/profile' },
     { label: 'Calendar', icon: <CalendarMonth />, path: '/student/calendar' },
@@ -81,6 +90,7 @@ const NAV_CONFIG = {
     { label: 'Messages', icon: <Message />, path: '/student/messages' },
   ],
   parent: [
+    { label: 'Home', icon: <Home />, path: '/parent/home' },
     { label: 'Institution', icon: <CorporateFare />, path: '/parent/Institution' },
     { label: 'My Children', icon: <HomeWork />, path: '/parent' },
     { label: 'Messages', icon: <Message />, path: '/parent/messages' },
