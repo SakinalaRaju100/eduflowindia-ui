@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Container,
@@ -100,6 +100,125 @@ function ChangeView({ center }) {
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
+
+const PostCarousel = ({ images }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    if (images.length <= 1 || isHovered) return;
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 4000); // Auto-scroll every 4 seconds
+    return () => clearInterval(timer);
+  }, [images.length, isHovered]);
+
+  useEffect(() => {
+    if (scrollRef.current && images.length > 1 && !isHovered) {
+      const width = scrollRef.current.clientWidth;
+      scrollRef.current.scrollTo({
+        left: width * currentIndex,
+        behavior: 'smooth',
+      });
+    }
+  }, [currentIndex, images.length, isHovered]);
+
+  const handleScroll = (e) => {
+    if (!e.target) return;
+    const index = Math.round(e.target.scrollLeft / e.target.clientWidth);
+    if (index !== currentIndex) {
+      setCurrentIndex(index);
+    }
+  };
+
+  return (
+    <Box
+      sx={{ position: 'relative' }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onTouchStart={() => setIsHovered(true)}
+      onTouchEnd={() => setIsHovered(false)}
+    >
+      <Box
+        ref={scrollRef}
+        onScroll={handleScroll}
+        sx={{
+          display: 'flex',
+          overflowX: 'auto',
+          scrollSnapType: 'x mandatory',
+          scrollbarWidth: 'none',
+          '&::-webkit-scrollbar': { display: 'none' },
+          width: '100%',
+          height: { xs: 300, sm: 400, lg: 500 },
+        }}
+      >
+        {images.map((img, idx) => (
+          <CardMedia
+            key={idx}
+            component="img"
+            image={img}
+            alt={`Post image ${idx + 1}`}
+            sx={{
+              scrollSnapAlign: 'start',
+              flexShrink: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+          />
+        ))}
+      </Box>
+      {images.length > 1 && (
+        <>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 16,
+              right: 16,
+              bgcolor: 'rgba(0,0,0,0.6)',
+              color: 'white',
+              px: 1.5,
+              py: 0.5,
+              borderRadius: 4,
+              fontSize: 12,
+              fontWeight: 600,
+              pointerEvents: 'none',
+            }}
+          >
+            {currentIndex + 1} / {images.length}
+          </Box>
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 16,
+              left: 0,
+              right: 0,
+              display: 'flex',
+              justifyContent: 'center',
+              gap: 1,
+              pointerEvents: 'none',
+            }}
+          >
+            {images.map((_, idx) => (
+              <Box
+                key={idx}
+                sx={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  bgcolor: currentIndex === idx ? 'primary.main' : 'rgba(255,255,255,0.6)',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.5)',
+                  transition: 'background-color 0.3s',
+                }}
+              />
+            ))}
+          </Box>
+        </>
+      )}
+    </Box>
+  );
+};
 
 export default function HomePage() {
   const theme = useTheme();
@@ -351,6 +470,8 @@ export default function HomePage() {
                   const schoolLogo =
                     inst.logo ||
                     `https://ui-avatars.com/api/?name=${encodeURIComponent(schoolName)}&background=1565C0&color=fff`;
+                  const imagesToRender =
+                    feed.images?.length > 0 ? feed.images : feed.image ? [feed.image] : [];
 
                   return (
                     <Card
@@ -387,16 +508,7 @@ export default function HomePage() {
                         }
                         subheader={timeAgo(feed.createdAt)}
                       />
-                      <CardMedia
-                        component="img"
-                        image={feed.image}
-                        alt="Post image"
-                        sx={{
-                          width: '100%',
-                          height: { xs: 300, sm: 400, lg: 500 },
-                          objectFit: 'cover',
-                        }}
-                      />
+                      <PostCarousel images={imagesToRender} />
                       <CardActions disableSpacing sx={{ px: 2, pt: 1.5 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', mr: 3 }}>
                           <Typography

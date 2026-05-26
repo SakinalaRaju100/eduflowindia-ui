@@ -46,6 +46,127 @@ import api from '@/api/client';
 import InstitutionBanner from '@/components/common/InstitutionBanner';
 import { showSnackbar } from '@/components/common/ShowSnackbar';
 
+const PostCarousel = ({ images }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    if (images.length <= 1 || isHovered) return;
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [images.length, isHovered]);
+
+  useEffect(() => {
+    if (scrollRef.current && images.length > 1 && !isHovered) {
+      const width = scrollRef.current.clientWidth;
+      scrollRef.current.scrollTo({
+        left: width * currentIndex,
+        behavior: 'smooth',
+      });
+    }
+  }, [currentIndex, images.length, isHovered]);
+
+  const handleScroll = (e) => {
+    if (!e.target) return;
+    const index = Math.round(e.target.scrollLeft / e.target.clientWidth);
+    if (index !== currentIndex) {
+      setCurrentIndex(index);
+    }
+  };
+
+  return (
+    <Box
+      sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onTouchStart={() => setIsHovered(true)}
+      onTouchEnd={() => setIsHovered(false)}
+    >
+      <Box
+        ref={scrollRef}
+        onScroll={handleScroll}
+        sx={{
+          display: 'flex',
+          overflowX: 'auto',
+          scrollSnapType: 'x mandatory',
+          scrollbarWidth: 'none',
+          '&::-webkit-scrollbar': { display: 'none' },
+          width: '100%',
+          height: '100%',
+        }}
+      >
+        {images.map((img, idx) => (
+          <Box
+            key={idx}
+            component="img"
+            src={img}
+            alt={`Post image ${idx + 1}`}
+            className="post-img"
+            sx={{
+              scrollSnapAlign: 'start',
+              flexShrink: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              transition: 'transform 0.3s ease',
+            }}
+          />
+        ))}
+      </Box>
+      {images.length > 1 && (
+        <>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 8,
+              left: 8,
+              bgcolor: 'rgba(0,0,0,0.6)',
+              color: 'white',
+              px: 1,
+              py: 0.2,
+              borderRadius: 2,
+              fontSize: 10,
+              fontWeight: 600,
+              pointerEvents: 'none',
+            }}
+          >
+            {currentIndex + 1} / {images.length}
+          </Box>
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 8,
+              left: 0,
+              right: 0,
+              display: 'flex',
+              justifyContent: 'center',
+              gap: 0.5,
+              pointerEvents: 'none',
+            }}
+          >
+            {images.map((_, idx) => (
+              <Box
+                key={idx}
+                sx={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  bgcolor: currentIndex === idx ? 'primary.main' : 'rgba(255,255,255,0.6)',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.5)',
+                  transition: 'background-color 0.3s',
+                }}
+              />
+            ))}
+          </Box>
+        </>
+      )}
+    </Box>
+  );
+};
+
 export default function InstitutionInfo() {
   const { user } = useAuth();
   const { institutionUniqueId } = useParams();
@@ -72,9 +193,10 @@ export default function InstitutionInfo() {
   });
 
   const [addPostOpen, setAddPostOpen] = useState(false);
-  const [postForm, setPostForm] = useState({ caption: '', image: null });
+  const [postForm, setPostForm] = useState({ caption: '', images: [] });
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmittingPost, setIsSubmittingPost] = useState(false);
+  const [editPostId, setEditPostId] = useState(null);
 
   const [interestOpen, setInterestOpen] = useState(false);
   const [interestForm, setInterestForm] = useState({ name: '', phone: '', email: '', message: '' });
@@ -144,35 +266,63 @@ export default function InstitutionInfo() {
   }, []);
 
   const handlePostImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    const remainingSlots = 3 - postForm.images.length;
+    if (remainingSlots <= 0) {
+      showSnackbar('Maximum 3 images allowed per post.', 'warning');
+      e.target.value = null;
+      return;
+    }
+    const filesToProcess = files.slice(0, remainingSlots);
+
     setIsUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
     try {
-      const response = await api.post('/files/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      setPostForm((p) => ({ ...p, image: response.data.url }));
+      const newUrls = [];
+      for (const file of filesToProcess) {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await api.post('/files/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        newUrls.push(response.data.url);
+      }
+      setPostForm((p) => ({ ...p, images: [...p.images, ...newUrls] }));
     } catch (error) {
       console.error('Upload failed', error);
-      showSnackbar('Failed to upload image', 'error');
+      showSnackbar('Failed to upload image(s)', 'error');
     } finally {
       setIsUploading(false);
+      e.target.value = null;
     }
   };
 
+  const handleRemovePostImage = (index) => {
+    setPostForm((p) => ({ ...p, images: p.images.filter((_, i) => i !== index) }));
+  };
+
   const handleAddPost = async () => {
+    if (postForm.images.length === 0) {
+      showSnackbar('Please upload at least one image', 'warning');
+      return;
+    }
     setIsSubmittingPost(true);
     try {
-      await api.post('/auth/posts', postForm);
-      showSnackbar('Post added successfully!', 'success');
+      if (editPostId) {
+        await api.put(`/auth/posts/${editPostId}`, postForm);
+        showSnackbar('Post updated successfully!', 'success');
+      } else {
+        await api.post('/auth/posts', postForm);
+        showSnackbar('Post added successfully!', 'success');
+      }
       setAddPostOpen(false);
-      setPostForm({ caption: '', image: null });
+      setPostForm({ caption: '', images: [] });
+      setEditPostId(null);
       refetchPosts();
     } catch (error) {
       console.error('Failed to add post', error);
-      showSnackbar(error.response?.data?.message || 'Failed to add post', 'error');
+      showSnackbar(error.response?.data?.message || 'Failed to save post', 'error');
     } finally {
       setIsSubmittingPost(false);
     }
@@ -889,7 +1039,11 @@ export default function InstitutionInfo() {
               variant="contained"
               size="small"
               startIcon={<Add />}
-              onClick={() => setAddPostOpen(true)}
+              onClick={() => {
+                setPostForm({ caption: '', images: [] });
+                setEditPostId(null);
+                setAddPostOpen(true);
+              }}
               sx={{
                 borderRadius: 2,
                 textTransform: 'none',
@@ -903,82 +1057,96 @@ export default function InstitutionInfo() {
           )}
         </Box>
         <Grid container spacing={1}>
-          {dbPosts.map((post) => (
-            <Grid item xs={4} key={post._id}>
-              <Box
-                sx={{
-                  position: 'relative',
-                  paddingTop: '100%', // 1:1 Aspect Ratio (Square)
-                  cursor: 'pointer',
-                  overflow: 'hidden',
-                  '&:hover .overlay': { opacity: 1 },
-                  '&:hover .post-img': { transform: 'scale(1.05)' },
-                }}
-              >
-                {isPrincipalView && (
-                  <IconButton
-                    size="small"
-                    color="error"
-                    sx={{
-                      position: 'absolute',
-                      top: 4,
-                      right: 4,
-                      zIndex: 10,
-                      bgcolor: 'rgba(255,255,255,0.7)',
-                      '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' },
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemovePost(post._id);
-                    }}
-                  >
-                    <Delete fontSize="small" />
-                  </IconButton>
-                )}
-                <img
-                  className="post-img"
-                  src={post.image}
-                  alt="post"
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    transition: 'transform 0.3s ease',
-                  }}
-                />
+          {dbPosts.map((post) => {
+            const imagesToRender =
+              post.images?.length > 0 ? post.images : post.image ? [post.image] : [];
+            return (
+              <Grid item xs={4} key={post._id}>
                 <Box
-                  className="overlay"
                   sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    bgcolor: 'rgba(0,0,0,0.5)',
-                    opacity: 0,
-                    transition: 'opacity 0.2s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 3,
-                    color: 'white',
+                    position: 'relative',
+                    paddingTop: '100%', // 1:1 Aspect Ratio (Square)
+                    cursor: 'pointer',
+                    overflow: 'hidden',
+                    '&:hover .overlay': { opacity: 1 },
+                    '&:hover .post-img': { transform: 'scale(1.05)' },
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <Favorite fontSize="small" />{' '}
-                    <Typography fontWeight={700}>{post.likes}</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <ChatBubble fontSize="small" />{' '}
-                    <Typography fontWeight={700}>{post.comments}</Typography>
+                  {isPrincipalView && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: 5,
+                        right: 5,
+                        zIndex: 10,
+                        display: 'flex',
+                        gap: 0.5,
+                      }}
+                    >
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        sx={{
+                          bgcolor: 'rgba(255,255,255,0.7)',
+                          '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' },
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPostForm({ caption: post.caption || '', images: imagesToRender });
+                          setEditPostId(post._id);
+                          setAddPostOpen(true);
+                        }}
+                      >
+                        <Edit fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        sx={{
+                          bgcolor: 'rgba(255,255,255,0.7)',
+                          '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' },
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemovePost(post._id);
+                        }}
+                      >
+                        <Delete fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  )}
+                  <PostCarousel images={imagesToRender} />
+                  <Box
+                    className="overlay"
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      bgcolor: 'rgba(0,0,0,0.5)',
+                      opacity: 0,
+                      transition: 'opacity 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 3,
+                      color: 'white',
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Favorite fontSize="small" />{' '}
+                      <Typography fontWeight={700}>{post.likes}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <ChatBubble fontSize="small" />{' '}
+                      <Typography fontWeight={700}>{post.comments}</Typography>
+                    </Box>
                   </Box>
                 </Box>
-              </Box>
-            </Grid>
-          ))}
+              </Grid>
+            );
+          })}
         </Grid>
       </Box>
 
@@ -988,7 +1156,7 @@ export default function InstitutionInfo() {
           sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
         >
           <Typography variant="h6" fontWeight={700}>
-            Create New Post
+            {editPostId ? 'Edit Post' : 'Create New Post'}
           </Typography>
           <IconButton onClick={() => setAddPostOpen(false)}>
             <Close />
@@ -996,56 +1164,70 @@ export default function InstitutionInfo() {
         </DialogTitle>
         <Divider />
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Box
-            sx={{
-              width: '100%',
-              height: 250,
-              bgcolor: 'action.hover',
-              borderRadius: 2,
-              border: '1px dashed',
-              borderColor: 'divider',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative',
-              overflow: 'hidden',
-            }}
-          >
-            {postForm.image ? (
-              <>
-                <img
-                  src={postForm.image}
-                  alt="Post"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            {postForm.images.map((img, i) => (
+              <Box key={i} sx={{ position: 'relative' }}>
+                <Box
+                  component="img"
+                  src={img}
+                  sx={{
+                    width: 120,
+                    height: 120,
+                    borderRadius: 2,
+                    objectFit: 'cover',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                  }}
                 />
                 <IconButton
+                  size="small"
+                  color="error"
                   sx={{
                     position: 'absolute',
-                    top: 8,
-                    right: 8,
-                    bgcolor: 'rgba(0,0,0,0.5)',
-                    color: 'white',
-                    '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' },
+                    top: -8,
+                    right: -8,
+                    bgcolor: 'background.paper',
+                    boxShadow: 1,
+                    '&:hover': { bgcolor: 'background.default' },
                   }}
-                  onClick={() => setPostForm({ ...postForm, image: null })}
+                  onClick={() => handleRemovePostImage(i)}
                 >
                   <Close fontSize="small" />
                 </IconButton>
-              </>
-            ) : (
+              </Box>
+            ))}
+            {postForm.images.length < 3 && (
               <Button
                 component="label"
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 1,
-                  color: 'text.secondary',
-                  textTransform: 'none',
-                }}
+                variant="outlined"
+                sx={{ width: 120, height: 120, borderStyle: 'dashed', borderRadius: 2 }}
               >
-                {isUploading ? <CircularProgress size={24} /> : <PhotoCamera fontSize="large" />}
-                <Typography>{isUploading ? 'Uploading...' : 'Upload Photo'}</Typography>
-                <input type="file" hidden accept="image/*" onChange={handlePostImageUpload} />
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 1,
+                    height: '100%',
+                  }}
+                >
+                  {isUploading ? (
+                    <CircularProgress size={24} color="inherit" />
+                  ) : (
+                    <PhotoCamera fontSize="large" />
+                  )}
+                  <Typography variant="caption" sx={{ textTransform: 'none' }}>
+                    {isUploading ? 'Uploading...' : 'Upload Photo'}
+                  </Typography>
+                </Box>
+                <input
+                  hidden
+                  accept="image/*"
+                  type="file"
+                  multiple
+                  onChange={handlePostImageUpload}
+                />
               </Button>
             )}
           </Box>
@@ -1064,11 +1246,17 @@ export default function InstitutionInfo() {
           </Button>
           <Button
             variant="contained"
-            disabled={!postForm.image || isUploading || isSubmittingPost}
+            disabled={postForm.images.length === 0 || isUploading || isSubmittingPost}
             onClick={handleAddPost}
             sx={{ textTransform: 'none', px: 4 }}
           >
-            {isSubmittingPost ? <CircularProgress size={24} color="inherit" /> : 'Post'}
+            {isSubmittingPost ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : editPostId ? (
+              'Update'
+            ) : (
+              'Post'
+            )}
           </Button>
         </DialogActions>
       </Dialog>
