@@ -90,7 +90,7 @@ export default function InstitutionBanner({ propInstitution }) {
                 scrollSnapAlign: 'center',
                 height: '100%',
                 objectFit: 'cover',
-                borderRadius: 3,
+                borderRadius: 2,
                 boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
                 border: '1px solid',
                 borderColor: 'divider',

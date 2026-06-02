@@ -366,11 +366,11 @@ export default function ExamsAndResults() {
   ];
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5" fontWeight={700}>
+    <Box sx={{ m: 1 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'right', alignItems: 'center', mb: 3 }}>
+        {/* <Typography variant="h5" fontWeight={700}>
           Exams
-        </Typography>
+        </Typography> */}
         <Button
           variant="contained"
           startIcon={<Add />}

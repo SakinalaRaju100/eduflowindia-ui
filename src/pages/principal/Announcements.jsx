@@ -211,15 +211,15 @@ export default function PrincipalAnnouncements() {
   ];
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography
+    <Box sx={{ m: 1 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'right', alignItems: 'center', mb: 3 }}>
+        {/* <Typography
           variant="h5"
           fontWeight={700}
           sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
         >
           <Campaign color="primary" /> Announcements
-        </Typography>
+        </Typography> */}
         <Button
           variant="contained"
           startIcon={<Add />}
@@ -233,7 +233,7 @@ export default function PrincipalAnnouncements() {
         </Button>
       </Box>
 
-      <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
+      <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
         <CardContent sx={{ p: 0 }}>
           <Box sx={{ p: 3 }}>
             <DataTable

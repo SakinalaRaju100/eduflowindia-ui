@@ -414,8 +414,14 @@ export default function AttendanceMarker({ classroomId, students = [] }) {
       <Dialog
         open={attendanceDialogOpen}
         onClose={() => setAttendanceDialogOpen(false)}
-        maxWidth="xl"
-        fullWidth
+        maxWidth={false}
+        PaperProps={{
+          sx: {
+            m: 1,
+            width: 'calc(100% - 16px)',
+            maxWidth: '100%',
+          },
+        }}
       >
         <DialogTitle
           sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
@@ -428,7 +434,7 @@ export default function AttendanceMarker({ classroomId, students = [] }) {
           </IconButton>
         </DialogTitle>
         <Divider />
-        <DialogContent>
+        <DialogContent sx={{ p: { xs: 1, sm: 2 } }}>
           <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
             <TextField
               label="Select Month & Year"
@@ -438,112 +444,70 @@ export default function AttendanceMarker({ classroomId, students = [] }) {
               InputLabelProps={{ shrink: true }}
               size="small"
             />
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
-              <Typography
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  color: 'text.secondary',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                }}
-              >
-                <Box
-                  component="span"
-                  sx={{ bgcolor: '#e8f5e9', color: '#2e7d32', px: 0.5, borderRadius: 0.5 }}
+            <Box
+              sx={{
+                display: 'flex',
+                gap: { xs: 0.5, sm: 1 },
+                flexWrap: 'nowrap',
+                alignItems: 'center',
+                overflowX: 'auto',
+                scrollbarWidth: 'none',
+                '&::-webkit-scrollbar': { display: 'none' },
+              }}
+            >
+              {[
+                { label: 'Present', short: 'P', bg: '#e8f5e9', color: '#2e7d32' },
+                { label: 'Absent', short: 'A', bg: '#ffebee', color: '#c62828' },
+                { label: 'Half Day', short: 'M', bg: '#e3f2fd', color: '#1565c0' },
+                { label: 'Holiday', short: 'H', bg: '#fff3e0', color: '#ef6c00' },
+                { label: 'Non-Working Day', short: 'N', bg: '#f5f5f5', color: '#757575' },
+              ].map((item) => (
+                <Typography
+                  key={item.short}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: { xs: 0.25, sm: 0.5 },
+                    color: 'text.secondary',
+                    fontSize: { xs: '0.55rem', sm: '0.75rem' },
+                    fontWeight: 600,
+                    whiteSpace: 'nowrap',
+                  }}
                 >
-                  P
-                </Box>{' '}
-                Present
-              </Typography>
-              <Typography
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  color: 'text.secondary',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                }}
-              >
-                <Box
-                  component="span"
-                  sx={{ bgcolor: '#ffebee', color: '#c62828', px: 0.5, borderRadius: 0.5 }}
-                >
-                  A
-                </Box>{' '}
-                Absent
-              </Typography>
-              <Typography
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  color: 'text.secondary',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                }}
-              >
-                <Box
-                  component="span"
-                  sx={{ bgcolor: '#e3f2fd', color: '#1565c0', px: 0.5, borderRadius: 0.5 }}
-                >
-                  M
-                </Box>{' '}
-                Half Day
-              </Typography>
-              <Typography
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  color: 'text.secondary',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                }}
-              >
-                <Box
-                  component="span"
-                  sx={{ bgcolor: '#fff3e0', color: '#ef6c00', px: 0.5, borderRadius: 0.5 }}
-                >
-                  H
-                </Box>{' '}
-                Holiday
-              </Typography>
-              <Typography
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  color: 'text.secondary',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                }}
-              >
-                <Box
-                  component="span"
-                  sx={{ bgcolor: '#f5f5f5', color: '#757575', px: 0.5, borderRadius: 0.5 }}
-                >
-                  N
-                </Box>{' '}
-                Non-Working Day
-              </Typography>
+                  <Box
+                    component="span"
+                    sx={{
+                      bgcolor: item.bg,
+                      color: item.color,
+                      px: { xs: 0.3, sm: 0.5 },
+                      borderRadius: 0.5,
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {item.short}
+                  </Box>{' '}
+                  {item.label}
+                </Typography>
+              ))}
             </Box>
           </Box>
 
           <TableContainer
             component={Paper}
             elevation={0}
-            sx={{ maxHeight: '65vh', border: '1px solid', borderColor: 'divider' }}
+            sx={{ maxHeight: 'calc(100vh - 180px)', border: '1px solid', borderColor: 'divider' }}
           >
-            <Table stickyHeader size="small" sx={{ minWidth: 1200 }}>
+            <Table
+              stickyHeader
+              size="small"
+              sx={{ minWidth: 900, '& .MuiTableCell-root': { fontSize: '0.7rem', p: '4px' } }}
+            >
               <TableHead>
                 <TableRow>
                   <TableCell
                     sx={{
                       fontWeight: 'bold',
-                      minWidth: 150,
+                      minWidth: 110,
                       position: 'sticky',
                       left: 0,
                       bgcolor: 'grey.50',
@@ -560,7 +524,7 @@ export default function AttendanceMarker({ classroomId, students = [] }) {
                       align="center"
                       sx={{
                         fontWeight: 'bold',
-                        minWidth: 40,
+                        minWidth: 24,
                         bgcolor: 'grey.50',
                         zIndex: 2,
                         borderRight: '1px solid',
@@ -574,7 +538,7 @@ export default function AttendanceMarker({ classroomId, students = [] }) {
                     align="center"
                     sx={{
                       fontWeight: 'bold',
-                      minWidth: 60,
+                      minWidth: 40,
                       bgcolor: 'grey.50',
                       zIndex: 2,
                       borderRight: '1px solid',
@@ -587,7 +551,7 @@ export default function AttendanceMarker({ classroomId, students = [] }) {
                     align="center"
                     sx={{
                       fontWeight: 'bold',
-                      minWidth: 80,
+                      minWidth: 50,
                       bgcolor: 'grey.50',
                       zIndex: 2,
                       borderRight: '1px solid',

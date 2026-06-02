@@ -36,7 +36,7 @@ export default function TeacherClasses() {
   });
 
   return (
-    <Box>
+    <Box sx={{ m: 1 }}>
       <Typography variant="h5" fontWeight={700} gutterBottom>
         My Classes
       </Typography>

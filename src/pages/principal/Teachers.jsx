@@ -166,7 +166,7 @@ function TeacherAttendanceTab({ teacherId }) {
     );
 
   return (
-    <Box>
+    <Box sx={{ m: 1 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <IconButton onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} size="small">
           <ChevronLeft />
@@ -598,12 +598,21 @@ export default function PrincipalTeachers() {
   ];
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+    <Box sx={{ m: 1 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: { xs: 'stretch', sm: 'center' },
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <Typography variant="h5" fontWeight={700}>
           Teachers ({teachers.length})
         </Typography>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: 'flex', gap: 1, flexDirection: { xs: 'column', sm: 'row' } }}>
           <Button
             variant="outlined"
             startIcon={<HowToReg />}

@@ -97,11 +97,11 @@ export default function Inquiries() {
   ];
 
   return (
-    <Box>
-      <Typography variant="h5" fontWeight={700} sx={{ mb: 3 }}>
+    <Box sx={{ m: 1 }}>
+      {/* <Typography variant="h5" fontWeight={700} sx={{ mb: 3 }}>
         Student Inquiries
-      </Typography>
-      <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
+      </Typography> */}
+      <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
         <CardContent sx={{ p: 3 }}>
           <DataTable
             columns={cols}

@@ -48,10 +48,10 @@ export default function PrincipalSettings() {
   });
 
   return (
-    <Box>
-      <Typography variant="h5" fontWeight={700} gutterBottom>
+    <Box sx={{ m: 1 }}>
+      {/* <Typography variant="h5" fontWeight={700} gutterBottom>
         Settings
-      </Typography>
+      </Typography> */}
       <Card
         elevation={0}
         sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, mb: 3 }}

@@ -116,13 +116,13 @@ export default function TeacherSalaries() {
   ];
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+    <Box sx={{ m: 1 }}>
+      {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5" fontWeight={700}>
           My Salary Details
         </Typography>
-      </Box>
-      <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
+      </Box> */}
+      <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
         <CardContent sx={{ p: 0 }}>
           <Box sx={{ p: 3 }}>
             <DataTable

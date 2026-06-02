@@ -147,7 +147,7 @@ export default function PrincipalCalendar() {
   };
 
   return (
-    <Box>
+    <Box sx={{ m: 1 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <IconButton onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>

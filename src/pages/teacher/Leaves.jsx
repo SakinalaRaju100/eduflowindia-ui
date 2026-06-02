@@ -144,11 +144,11 @@ export default function TeacherLeaves() {
   ];
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5" fontWeight={700}>
+    <Box sx={{ m: 1 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'right', alignItems: 'center', mb: 3 }}>
+        {/* <Typography variant="h5" fontWeight={700}>
           Leaves
-        </Typography>
+        </Typography> */}
         <Button variant="contained" startIcon={<Add />} onClick={() => setOpen(true)}>
           Apply Leave
         </Button>

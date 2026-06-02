@@ -123,11 +123,18 @@ export default function PrincipalDashboard() {
   }));
 
   return (
-    <Box>
+    <Box sx={{ m: 1 }}>
       <InstitutionBanner />
 
       <Grid container spacing={2.5} sx={{ mb: 3 }}>
-        <Grid onClick={() => navigate('/principal/classrooms')} item xs={6} sm={3}>
+        <Grid
+          onClick={() => navigate('/principal/classrooms')}
+          item
+          xs={12}
+          sm={6}
+          md={3}
+          sx={{ cursor: 'pointer' }}
+        >
           <StatCard
             title="Classrooms"
             value={filteredClassrooms.length}
@@ -136,7 +143,14 @@ export default function PrincipalDashboard() {
             loading={!classrooms}
           />
         </Grid>
-        <Grid onClick={() => navigate('/principal/teachers')} item xs={6} sm={3}>
+        <Grid
+          onClick={() => navigate('/principal/teachers')}
+          item
+          xs={12}
+          sm={6}
+          md={3}
+          sx={{ cursor: 'pointer' }}
+        >
           <StatCard
             title="Total Teachers"
             value={r.totalTeachers}
@@ -145,7 +159,14 @@ export default function PrincipalDashboard() {
             loading={!reports}
           />
         </Grid>
-        <Grid onClick={() => navigate('/principal/students')} item xs={6} sm={3}>
+        <Grid
+          onClick={() => navigate('/principal/students')}
+          item
+          xs={12}
+          sm={6}
+          md={3}
+          sx={{ cursor: 'pointer' }}
+        >
           <StatCard
             title="Total Students"
             value={r.totalStudents}
@@ -154,7 +175,7 @@ export default function PrincipalDashboard() {
             loading={!reports}
           />
         </Grid>
-        <Grid item xs={6} sm={3}>
+        <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Today Present"
             value={att.present || 0}

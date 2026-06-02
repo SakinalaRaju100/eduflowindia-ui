@@ -207,11 +207,11 @@ export default function PrincipalSalaries() {
     Number(form.baseSalary || 0) + Number(form.allowances || 0) - Number(form.deductions || 0);
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5" fontWeight={700}>
+    <Box sx={{ m: 1 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'right', alignItems: 'center', mb: 3 }}>
+        {/* <Typography variant="h5" fontWeight={700}>
           Teacher Salaries
-        </Typography>
+        </Typography> */}
         <Button
           variant="contained"
           startIcon={<Add />}
@@ -225,7 +225,7 @@ export default function PrincipalSalaries() {
         </Button>
       </Box>
 
-      <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
+      <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
         <CardContent sx={{ p: 0 }}>
           <Box sx={{ p: 3 }}>
             <DataTable

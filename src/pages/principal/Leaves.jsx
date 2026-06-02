@@ -114,15 +114,15 @@ export default function PrincipalLeaves() {
     );
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography
+    <Box sx={{ m: 1 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'right', alignItems: 'center', mb: 3 }}>
+        {/* <Typography
           variant="h5"
           fontWeight={700}
           sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
         >
           <BeachAccess color="primary" /> Leave Management
-        </Typography>
+        </Typography> */}
         <TextField
           select
           size="small"

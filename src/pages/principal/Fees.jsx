@@ -367,7 +367,7 @@ export default function PrincipalFees() {
     : null;
 
   return (
-    <Box>
+    <Box sx={{ m: 1 }}>
       <Box
         sx={{
           display: 'flex',
@@ -378,9 +378,9 @@ export default function PrincipalFees() {
           gap: 2,
         }}
       >
-        <Typography variant="h5" fontWeight={700}>
+        {/* <Typography variant="h5" fontWeight={700}>
           Fees & Payments
-        </Typography>
+        </Typography> */}
         <Box sx={{ display: 'flex', gap: 2 }}>
           {/* <FormControl size="small" sx={{ minWidth: 160 }}>
             <InputLabel>Academic Year</InputLabel>

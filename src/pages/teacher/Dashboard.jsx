@@ -68,7 +68,7 @@ export default function TeacherDashboard() {
   }, [classes, selectedYear, selectedAcademicYearObject]);
 
   return (
-    <Box>
+    <Box sx={{ m: 1 }}>
       <InstitutionBanner />
       <Grid container spacing={2.5} sx={{ mb: 3 }}>
         <Grid onClick={() => navigate('/teacher/classes')} item xs={6} sm={3}>

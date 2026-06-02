@@ -182,9 +182,16 @@ export default function PrincipalClassroomDetail() {
   if (!classroom) return <Typography>Classroom not found</Typography>;
 
   return (
-    <Box>
+    <Box sx={{ m: 1 }}>
       <Box
-        sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: { xs: 'stretch', sm: 'flex-start' },
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: 2,
+          mb: 3,
+        }}
       >
         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
           <IconButton onClick={() => navigate('/principal/classrooms')} sx={{ mt: -0.5 }}>
@@ -243,17 +250,18 @@ export default function PrincipalClassroomDetail() {
               )}
             </Box>
           </Box>
-          <Button
-            variant="contained"
-            startIcon={<PersonAdd />}
-            onClick={() => {
-              setSelectedStudentIds(currentStudentIds);
-              setManageStudentsOpen(true);
-            }}
-          >
-            Manage Students
-          </Button>
         </Box>
+        <Button
+          variant="contained"
+          startIcon={<PersonAdd />}
+          onClick={() => {
+            setSelectedStudentIds(currentStudentIds);
+            setManageStudentsOpen(true);
+          }}
+          sx={{ alignSelf: { xs: 'stretch', sm: 'auto' }, flexShrink: 0 }}
+        >
+          Manage Students
+        </Button>
       </Box>
       <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
         <CardContent sx={{ p: 2 }}>
