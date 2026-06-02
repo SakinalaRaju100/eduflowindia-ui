@@ -16,6 +16,12 @@ import {
   Tooltip,
   FormControl,
   Select,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  List,
+  ListItem,
+  ListItemText,
 } from '@mui/material';
 import {
   Notifications,
@@ -26,11 +32,12 @@ import {
   Lock,
   Logout,
   Menu as MenuIcon,
+  Close,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
-import { classroomAPI } from '@/api/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import api, { classroomAPI } from '@/api/client';
 
 const ROLE_COLORS = {
   superadmin: '#6A1B9A',
@@ -52,7 +59,10 @@ export default function TopBar({
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
+  const qc = useQueryClient();
   const [anchorEl, setAnchorEl] = useState(null);
+
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   // console.log('user :>> ', user);
 
@@ -93,6 +103,31 @@ export default function TopBar({
     enabled: user?.role === 'student' || (isParent && !!selectedChildId),
   });
   const allClasses = clsData?.data?.data || [];
+
+  // Fetch real notifications dynamically based on User login status and academic year
+  const { data: notifications = [] } = useQuery({
+    queryKey: ['app-notifications', selectedYear],
+    queryFn: () =>
+      api
+        .get('/app-notifications', { params: { academicYear: selectedYear } })
+        .then((res) => res.data.data || []),
+    enabled: !!user && !!selectedYear, // Ensures it only fetches when a user is logged in
+  });
+
+  const markReadMutation = useMutation({
+    mutationFn: (id) => api.put(`/app-notifications/${id}/read`),
+    onSuccess: () => qc.invalidateQueries(['app-notifications']),
+  });
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  const handleNotificationClick = (notif) => {
+    if (!notif.isRead) {
+      markReadMutation.mutate(notif._id);
+    }
+    if (notif.path) navigate(notif.path);
+    setNotificationsOpen(false);
+  };
 
   const academicYears = schoolData?.academicYears || [
     { year: '2022-2023', startDate: '2022-04-01', endDate: '2023-03-31', isCurrent: false },
@@ -227,11 +262,13 @@ export default function TopBar({
             </IconButton>
           </Tooltip>
 
-          {/* <IconButton size="small">
-            <Badge badgeContent={3} color="error">
-              <Notifications />
-            </Badge>
-          </IconButton> */}
+          {user && (
+            <IconButton size="small" onClick={() => setNotificationsOpen(true)}>
+              <Badge badgeContent={unreadCount} color="error">
+                <Notifications />
+              </Badge>
+            </IconButton>
+          )}
 
           {user ? (
             <Box
@@ -329,6 +366,84 @@ export default function TopBar({
           <Logout sx={{ mr: 1.5, fontSize: 18 }} /> Logout
         </MenuItem>
       </Menu>
+
+      {/* Notifications Modal */}
+      <Dialog
+        open={notificationsOpen}
+        onClose={() => setNotificationsOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle
+          sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+        >
+          <Typography variant="h6" fontWeight={700}>
+            Notifications
+          </Typography>
+          <IconButton onClick={() => setNotificationsOpen(false)} size="small">
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <Divider />
+        <DialogContent sx={{ p: 0 }}>
+          {notifications.length > 0 ? (
+            <List sx={{ p: 0 }}>
+              {notifications.map((notif, index) => (
+                <React.Fragment key={notif._id}>
+                  <ListItem
+                    onClick={() => handleNotificationClick(notif)}
+                    sx={{
+                      py: 1.5,
+                      px: 3,
+                      cursor: 'pointer',
+                      bgcolor: notif.isRead ? 'transparent' : 'action.hover',
+                      '&:hover': { bgcolor: 'action.selected' },
+                    }}
+                  >
+                    <ListItemText
+                      primary={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography variant="body2" fontWeight={notif.isRead ? 500 : 700}>
+                            {notif.title}
+                          </Typography>
+                          {!notif.isRead && (
+                            <Chip
+                              label="New"
+                              size="small"
+                              color="primary"
+                              sx={{ height: 16, fontSize: 10 }}
+                            />
+                          )}
+                        </Box>
+                      }
+                      secondary={
+                        <React.Fragment>
+                          <Typography
+                            variant="caption"
+                            display="block"
+                            color="text.primary"
+                            sx={{ mt: 0.5 }}
+                          >
+                            {notif.message}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {new Date(notif.createdAt).toLocaleString()}
+                          </Typography>
+                        </React.Fragment>
+                      }
+                    />
+                  </ListItem>
+                  {index < notifications.length - 1 && <Divider />}
+                </React.Fragment>
+              ))}
+            </List>
+          ) : (
+            <Box sx={{ p: 3, textAlign: 'center' }}>
+              <Typography color="text.secondary">No new notifications</Typography>
+            </Box>
+          )}
+        </DialogContent>
+      </Dialog>
     </AppBar>
   );
 }
