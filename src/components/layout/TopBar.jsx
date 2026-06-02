@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -61,6 +61,7 @@ export default function TopBar({
   const theme = useTheme();
   const qc = useQueryClient();
   const [anchorEl, setAnchorEl] = useState(null);
+  const scrollContainerRef = useRef(null);
 
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
@@ -143,6 +144,23 @@ export default function TopBar({
   const showYearDropdown = !!user && user.role !== 'superadmin';
   // const showYearDropdown = user?.role == 'principal';
 
+  useEffect(() => {
+    let direction = 'right';
+    const interval = setInterval(() => {
+      if (scrollContainerRef.current) {
+        const container = scrollContainerRef.current;
+        if (direction === 'right') {
+          container.scrollTo({ left: container.scrollWidth, behavior: 'smooth' });
+          direction = 'left';
+        } else {
+          container.scrollTo({ left: 0, behavior: 'smooth' });
+          direction = 'right';
+        }
+      }
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const toggleMode = () => {
     const newMode = theme.palette.mode === 'light' ? 'dark' : 'light';
     updatePreferences({ theme: newMode });
@@ -180,6 +198,7 @@ export default function TopBar({
 
         {/* Scrollable Container */}
         <Box
+          ref={scrollContainerRef}
           sx={{
             display: 'flex',
             flex: 1,
