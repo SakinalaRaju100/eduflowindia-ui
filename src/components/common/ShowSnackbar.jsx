@@ -35,15 +35,16 @@ const ShowSnackbar = () => {
     <Snackbar
       open={snackbar.open}
       onClose={handleCloseSnackbar}
-      autoHideDuration={3000}
+      autoHideDuration={2500}
       anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       TransitionComponent={SlideTransition}
+      sx={{ mt: 5 }}
     >
       <Alert
         onClose={handleCloseSnackbar}
         severity={snackbar.severity}
         variant="filled"
-        sx={{ width: '100%', mt: 5 }}
+        sx={{ width: '100%' }}
       >
         {snackbar.message}
       </Alert>

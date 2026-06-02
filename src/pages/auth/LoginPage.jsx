@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -14,9 +14,14 @@ import {
   Chip,
   Divider,
   useTheme,
+  Autocomplete,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
 } from '@mui/material';
 import { Visibility, VisibilityOff, School, Email, Lock, ArrowBack } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
+import api from '@/api/client';
 const ROLE_HOME = {
   superadmin: '/superadmin',
   principal: '/principal',
@@ -44,12 +49,50 @@ export default function LoginPage() {
   const [showPwd, setShowPwd] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [options, setOptions] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [loadingSearch, setLoadingSearch] = useState(false);
+  const [dob, setDob] = useState('');
+  const [loginMethod, setLoginMethod] = useState('dob');
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (searchQuery && searchQuery.length >= 3) {
+        setLoadingSearch(true);
+        api
+          .get(`/auth/search-users?q=${searchQuery}`)
+          .then((res) => setOptions(res.data?.data || []))
+          .catch((err) => console.error('Search failed:', err))
+          .finally(() => setLoadingSearch(false));
+      } else {
+        setOptions([]);
+      }
+    }, 500);
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!selectedUser) {
+      setError('Please search and select a profile first.');
+      return;
+    }
+    const isStudentOrParent =
+      selectedUser.role?.toLowerCase() === 'student' ||
+      selectedUser.role?.toLowerCase() === 'parent';
+    const isDobSelected = isStudentOrParent && loginMethod === 'dob';
+    const pwdToSubmit = isDobSelected ? dob : form.password;
+
+    if (!pwdToSubmit) {
+      setError(isDobSelected ? 'Please enter Date of Birth.' : 'Please enter Password.');
+      return;
+    }
+
     setError('');
     setLoading(true);
     try {
-      const r = await login(form.email, form.password);
+      const r = await login(selectedUser.email, pwdToSubmit);
       if (r.isFirstLogin) {
         navigate('/change-password');
         return;
@@ -121,7 +164,7 @@ export default function LoginPage() {
             EduFlow
           </Typography>
           <Typography variant="h6" sx={{ opacity: 0.85, fontWeight: 400, mb: 4 }}>
-            Institution Management System
+            School Management System
           </Typography>
           {[
             'Multi-role access control',
@@ -175,45 +218,130 @@ export default function LoginPage() {
                     {error}
                   </Alert>
                 )}
-                <TextField
+                <Autocomplete
                   fullWidth
-                  label="Email Address"
-                  type="email"
-                  required
-                  value={form.email}
-                  onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
-                  sx={{ mb: 2 }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Email sx={{ color: 'text.secondary', fontSize: 20 }} />
-                      </InputAdornment>
-                    ),
+                  options={options}
+                  value={selectedUser}
+                  noOptionsText={
+                    searchQuery.length < 3
+                      ? 'Please enter at least 3 characters'
+                      : 'No matching profiles found'
+                  }
+                  getOptionLabel={(opt) =>
+                    opt
+                      ? `${opt.firstName || ''} ${opt.lastName || ''} (${opt.role}) - ${opt.email || ''}`
+                      : ''
+                  }
+                  isOptionEqualToValue={(opt, val) =>
+                    val ? opt._id === val._id || opt.email === val.email : false
+                  }
+                  loading={loadingSearch}
+                  onInputChange={(e, val) => setSearchQuery(val || '')}
+                  onChange={(e, val) => {
+                    setSelectedUser(val);
+                    setError('');
                   }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Search Profile (Min 3 chars)"
+                      required
+                      sx={{ mb: 2 }}
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <React.Fragment>
+                            {loadingSearch ? <CircularProgress color="inherit" size={20} /> : null}
+                            {params.InputProps.endAdornment}
+                          </React.Fragment>
+                        ),
+                      }}
+                    />
+                  )}
                 />
-                <TextField
-                  fullWidth
-                  label="Password"
-                  required
-                  type={showPwd ? 'text' : 'password'}
-                  value={form.password}
-                  onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
-                  sx={{ mb: 3 }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Lock sx={{ color: 'text.secondary', fontSize: 20 }} />
-                      </InputAdornment>
-                    ),
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton size="small" onClick={() => setShowPwd((p) => !p)}>
-                          {showPwd ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+
+                {selectedUser &&
+                (selectedUser.role?.toLowerCase() === 'student' ||
+                  selectedUser.role?.toLowerCase() === 'parent') ? (
+                  <Box sx={{ mb: 3 }}>
+                    <RadioGroup
+                      row
+                      value={loginMethod}
+                      onChange={(e) => setLoginMethod(e.target.value)}
+                      sx={{ mb: 1, justifyContent: 'center' }}
+                    >
+                      <FormControlLabel value="dob" control={<Radio size="small" />} label="DOB" />
+                      <FormControlLabel
+                        value="password"
+                        control={<Radio size="small" />}
+                        label="Password"
+                      />
+                    </RadioGroup>
+                    {loginMethod === 'dob' ? (
+                      <TextField
+                        fullWidth
+                        label="Date of Birth (DD/MM/YYYY)"
+                        required
+                        value={dob}
+                        onChange={(e) => setDob(e.target.value)}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Lock sx={{ color: 'text.secondary', fontSize: 20 }} />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    ) : (
+                      <TextField
+                        fullWidth
+                        label="Password"
+                        required
+                        type={showPwd ? 'text' : 'password'}
+                        value={form.password}
+                        onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Lock sx={{ color: 'text.secondary', fontSize: 20 }} />
+                            </InputAdornment>
+                          ),
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton size="small" onClick={() => setShowPwd((p) => !p)}>
+                                {showPwd ? <VisibilityOff /> : <Visibility />}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    )}
+                  </Box>
+                ) : (
+                  <TextField
+                    fullWidth
+                    label="Password"
+                    required
+                    type={showPwd ? 'text' : 'password'}
+                    value={form.password}
+                    onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
+                    sx={{ mb: 3 }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Lock sx={{ color: 'text.secondary', fontSize: 20 }} />
+                        </InputAdornment>
+                      ),
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton size="small" onClick={() => setShowPwd((p) => !p)}>
+                            {showPwd ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                )}
                 <Button
                   type="submit"
                   fullWidth
@@ -248,7 +376,27 @@ export default function LoginPage() {
                   key={c.role}
                   label={c.role}
                   size="small"
-                  onClick={() => setForm({ email: c.email, password: c.pwd })}
+                  onClick={() => {
+                    const roleLower = c.role.toLowerCase();
+                    const demoUser = {
+                      _id: c.role,
+                      email: c.email,
+                      role: roleLower,
+                      firstName: c.role,
+                      lastName: 'Demo',
+                    };
+                    setSelectedUser(demoUser);
+                    setOptions((prev) =>
+                      prev.find((o) => o.email === c.email) ? prev : [demoUser, ...prev],
+                    );
+                    if (roleLower === 'student' || roleLower === 'parent') {
+                      setDob(c.pwd);
+                      setForm({ email: c.email, password: c.pwd });
+                    } else {
+                      setForm({ email: c.email, password: c.pwd });
+                    }
+                    setError('');
+                  }}
                   sx={{
                     fontWeight: 600,
                     bgcolor: `${c.color}15`,
