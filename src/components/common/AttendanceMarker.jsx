@@ -15,13 +15,22 @@ import {
   Tooltip,
   Paper,
   Badge,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Divider,
+  IconButton,
 } from '@mui/material';
-import { HowToReg } from '@mui/icons-material';
+import { HowToReg, Close, DateRange } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
-import { attendanceAPI, studentAPI } from '@/api/client';
+import api, { attendanceAPI, studentAPI } from '@/api/client';
 import { format } from 'date-fns';
 import StudentPopup from './StudentPopup';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
 
 const STATUS_OPTIONS = [
   { key: 'present', label: 'Present', short: 'P', color: '#43A047', bg: '#E8F5E9' },
@@ -43,6 +52,54 @@ export default function AttendanceMarker({ classroomId, students = [] }) {
   const [popupStudent, setPopupStudent] = useState(null);
   const [birthdays, setBirthdays] = useState([]);
   const [msg, setMsg] = useState(null);
+
+  const [attendanceDialogOpen, setAttendanceDialogOpen] = useState(false);
+  const [selectedMonthYear, setSelectedMonthYear] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+
+  const [yearStr, monthStr] = selectedMonthYear.split('-');
+  const daysInMonth = new Date(parseInt(yearStr, 10), parseInt(monthStr, 10), 0).getDate();
+  const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+  // Fetch actual monthly attendance from the backend
+  const { data: attendanceRecords, isFetching: isAttendanceFetching } = useQuery({
+    queryKey: ['monthlyAttendance', classroomId, yearStr, monthStr],
+    queryFn: () =>
+      api
+        .get(`/attendance/monthly-attendance`, {
+          params: { classroomId, year: yearStr, month: monthStr },
+        })
+        .then((res) => res.data?.data || []),
+    enabled: attendanceDialogOpen && !!classroomId,
+  });
+
+  const attendanceMap = React.useMemo(() => {
+    const map = {};
+    if (attendanceRecords && Array.isArray(attendanceRecords)) {
+      attendanceRecords.forEach((dailyRecord) => {
+        const recordDate = dailyRecord.date ? dailyRecord.date.split('T')[0] : null;
+        if (recordDate && Array.isArray(dailyRecord.records)) {
+          dailyRecord.records.forEach((studentRec) => {
+            const studentId = studentRec.studentId?._id || studentRec.studentId;
+            if (studentId) {
+              if (!map[studentId]) map[studentId] = {};
+              let statusChar = 'P'; // Default
+              const s = studentRec.status?.toLowerCase();
+              if (s === 'present' || s === 'late') statusChar = 'P';
+              else if (s === 'absent' || s === 'leave') statusChar = 'A';
+              else if (s === 'half-day') statusChar = 'M';
+              else if (s === 'holiday') statusChar = 'H';
+              else if (studentRec.status) statusChar = studentRec.status;
+              map[studentId][recordDate] = statusChar;
+            }
+          });
+        }
+      });
+    }
+    return map;
+  }, [attendanceRecords]);
 
   useEffect(() => {
     if (!classroomId) return;
@@ -177,7 +234,17 @@ export default function AttendanceMarker({ classroomId, students = [] }) {
         <Button size="small" variant="outlined" color="error" onClick={() => markAll('absent')}>
           All Absent
         </Button>
-        <Box sx={{ ml: 'auto', display: 'flex', gap: 1 }}>
+        <Box sx={{ ml: 'auto', display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+          <Button
+            variant="outlined"
+            color="primary"
+            size="small"
+            startIcon={<DateRange />}
+            onClick={() => setAttendanceDialogOpen(true)}
+            sx={{ textTransform: 'none', mr: 0.5 }}
+          >
+            Monthly View
+          </Button>
           <Chip label={`${presentCount} Present`} size="small" color="success" />
           <Chip label={`${students.length - presentCount} Absent`} size="small" color="error" />
           <Chip label={`${markedCount}/${students.length} Marked`} size="small" color="info" />
@@ -342,6 +409,337 @@ export default function AttendanceMarker({ classroomId, students = [] }) {
         open={Boolean(popupStudent)}
         onClose={() => setPopupStudent(null)}
       />
+
+      {/* Monthly Attendance Dialog */}
+      <Dialog
+        open={attendanceDialogOpen}
+        onClose={() => setAttendanceDialogOpen(false)}
+        maxWidth="xl"
+        fullWidth
+      >
+        <DialogTitle
+          sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+        >
+          <Typography variant="h6" fontWeight={700}>
+            Monthly Attendance
+          </Typography>
+          <IconButton onClick={() => setAttendanceDialogOpen(false)} size="small">
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <Divider />
+        <DialogContent>
+          <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+            <TextField
+              label="Select Month & Year"
+              type="month"
+              value={selectedMonthYear}
+              onChange={(e) => setSelectedMonthYear(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              size="small"
+            />
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+              <Typography
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  color: 'text.secondary',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={{ bgcolor: '#e8f5e9', color: '#2e7d32', px: 0.5, borderRadius: 0.5 }}
+                >
+                  P
+                </Box>{' '}
+                Present
+              </Typography>
+              <Typography
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  color: 'text.secondary',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={{ bgcolor: '#ffebee', color: '#c62828', px: 0.5, borderRadius: 0.5 }}
+                >
+                  A
+                </Box>{' '}
+                Absent
+              </Typography>
+              <Typography
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  color: 'text.secondary',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={{ bgcolor: '#e3f2fd', color: '#1565c0', px: 0.5, borderRadius: 0.5 }}
+                >
+                  M
+                </Box>{' '}
+                Half Day
+              </Typography>
+              <Typography
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  color: 'text.secondary',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={{ bgcolor: '#fff3e0', color: '#ef6c00', px: 0.5, borderRadius: 0.5 }}
+                >
+                  H
+                </Box>{' '}
+                Holiday
+              </Typography>
+              <Typography
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  color: 'text.secondary',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={{ bgcolor: '#f5f5f5', color: '#757575', px: 0.5, borderRadius: 0.5 }}
+                >
+                  N
+                </Box>{' '}
+                Non-Working Day
+              </Typography>
+            </Box>
+          </Box>
+
+          <TableContainer
+            component={Paper}
+            elevation={0}
+            sx={{ maxHeight: '65vh', border: '1px solid', borderColor: 'divider' }}
+          >
+            <Table stickyHeader size="small" sx={{ minWidth: 1200 }}>
+              <TableHead>
+                <TableRow>
+                  <TableCell
+                    sx={{
+                      fontWeight: 'bold',
+                      minWidth: 150,
+                      position: 'sticky',
+                      left: 0,
+                      bgcolor: 'grey.50',
+                      zIndex: 3,
+                      borderRight: '1px solid',
+                      borderColor: 'divider',
+                    }}
+                  >
+                    Student Name
+                  </TableCell>
+                  {daysArray.map((day) => (
+                    <TableCell
+                      key={day}
+                      align="center"
+                      sx={{
+                        fontWeight: 'bold',
+                        minWidth: 40,
+                        bgcolor: 'grey.50',
+                        zIndex: 2,
+                        borderRight: '1px solid',
+                        borderColor: 'divider',
+                      }}
+                    >
+                      {day}
+                    </TableCell>
+                  ))}
+                  <TableCell
+                    align="center"
+                    sx={{
+                      fontWeight: 'bold',
+                      minWidth: 60,
+                      bgcolor: 'grey.50',
+                      zIndex: 2,
+                      borderRight: '1px solid',
+                      borderColor: 'divider',
+                    }}
+                  >
+                    Ratio
+                  </TableCell>
+                  <TableCell
+                    align="center"
+                    sx={{
+                      fontWeight: 'bold',
+                      minWidth: 80,
+                      bgcolor: 'grey.50',
+                      zIndex: 2,
+                      borderRight: '1px solid',
+                      borderColor: 'divider',
+                    }}
+                  >
+                    Percentage
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {isAttendanceFetching ? (
+                  <TableRow>
+                    <TableCell colSpan={daysArray.length + 3} align="center" sx={{ py: 4 }}>
+                      <CircularProgress size={30} />
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  students.map((student) => {
+                    const studentId = student._id || student.id;
+                    const studentAttendance = attendanceMap[studentId] || {};
+                    let presentCount = 0;
+                    let validDays = 0;
+
+                    const attendanceStatuses = daysArray.map((day) => {
+                      const dateKey = `${String(day).padStart(2, '0')}-${monthStr}-${yearStr}`;
+                      const isoDate = `${yearStr}-${monthStr}-${String(day).padStart(2, '0')}`;
+                      let status = studentAttendance[isoDate];
+
+                      if (!status) {
+                        if (student.attendance) {
+                          if (Array.isArray(student.attendance)) {
+                            const record = student.attendance.find(
+                              (a) => a.date === dateKey || a.date?.startsWith(isoDate),
+                            );
+                            if (record) status = record.status || (record.present ? 'P' : 'A');
+                          } else if (typeof student.attendance === 'object') {
+                            status = student.attendance[dateKey] || student.attendance[isoDate];
+                          }
+                        }
+                      }
+
+                      if (!status) {
+                        const dayOfWeek = new Date(
+                          parseInt(yearStr),
+                          parseInt(monthStr) - 1,
+                          day,
+                        ).getDay();
+                        if (dayOfWeek === 0) {
+                          status = 'H';
+                        } else {
+                          status = '-';
+                        }
+                      }
+
+                      if (status === 'P') {
+                        presentCount += 1;
+                        validDays += 1;
+                      } else if (status === 'A') {
+                        validDays += 1;
+                      } else if (status === 'M') {
+                        presentCount += 0.5;
+                        validDays += 1;
+                      }
+
+                      return { day, status };
+                    });
+
+                    const ratio = validDays > 0 ? `${presentCount}/${validDays}` : '-';
+                    const percentage =
+                      validDays > 0 ? Math.round((presentCount / validDays) * 100) : null;
+
+                    return (
+                      <TableRow key={student._id || student.id} hover>
+                        <TableCell
+                          sx={{
+                            position: 'sticky',
+                            left: 0,
+                            bgcolor: 'background.paper',
+                            zIndex: 1,
+                            borderRight: '1px solid',
+                            borderColor: 'divider',
+                            fontWeight: 500,
+                          }}
+                        >
+                          {student.firstName} {student.lastName}
+                        </TableCell>
+                        {attendanceStatuses.map(({ day, status }) => {
+                          let statusColor = 'text.secondary';
+                          if (status === 'P') statusColor = 'success.main';
+                          else if (status === 'A') statusColor = 'error.main';
+                          else if (status === 'M') statusColor = 'info.main';
+                          else if (status === 'H') statusColor = 'warning.main';
+                          else if (status === 'N') statusColor = 'text.disabled';
+
+                          return (
+                            <TableCell
+                              key={day}
+                              align="center"
+                              sx={{
+                                borderRight: '1px solid',
+                                borderColor: 'divider',
+                                color: statusColor,
+                                fontWeight: status !== '-' ? 700 : 400,
+                              }}
+                            >
+                              {status}
+                            </TableCell>
+                          );
+                        })}
+                        <TableCell
+                          align="center"
+                          sx={{
+                            fontWeight: 'bold',
+                            borderRight: '1px solid',
+                            borderColor: 'divider',
+                          }}
+                        >
+                          {ratio}
+                        </TableCell>
+                        <TableCell
+                          align="center"
+                          sx={{
+                            fontWeight: 'bold',
+                            color:
+                              percentage >= 75
+                                ? 'success.main'
+                                : percentage !== null
+                                  ? 'error.main'
+                                  : 'inherit',
+                            borderRight: '1px solid',
+                            borderColor: 'divider',
+                          }}
+                        >
+                          {percentage !== null ? `${percentage}%` : '-'}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+                {students.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={daysArray.length + 1} align="center" sx={{ py: 3 }}>
+                      No students found in this classroom.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }
