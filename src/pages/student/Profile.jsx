@@ -74,10 +74,19 @@ export default function StudentProfile() {
     <Box>
       <Card
         elevation={0}
-        sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, mb: 3 }}
+        sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, m: 1 }}
       >
         <CardContent sx={{ p: 3 }}>
-          <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', flexWrap: 'wrap' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: { xs: 2, sm: 3 },
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              flexDirection: { xs: 'column', sm: 'row' },
+              textAlign: { xs: 'center', sm: 'left' },
+            }}
+          >
             <Avatar
               src={studentUser?.photo}
               sx={{
@@ -94,18 +103,26 @@ export default function StudentProfile() {
               {studentUser?.lastName?.[0]}
             </Avatar>
             <Box sx={{ flex: 1 }}>
-              <Typography variant="h4" fontWeight={800}>
+              <Typography variant="h6" fontWeight={800}>
                 {studentUser?.firstName} {studentUser?.lastName}
               </Typography>
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  flexWrap: 'wrap',
+                  mt: 1,
+                  justifyContent: { xs: 'center', sm: 'flex-start' },
+                }}
+              >
                 <Chip label={`ID: ${profile?.studentId || '—'}`} size="small" variant="outlined" />
-                <Chip
+                {/* <Chip
                   label={`Roll No: ${profile?.rollNumber || '—'}`}
                   size="small"
                   variant="outlined"
                 />
                 <Chip label={profile?.classroom?.name || '—'} size="small" color="primary" />
-                <Chip label={profile?.academicYear || '—'} size="small" />
+                <Chip label={profile?.academicYear || '—'} size="small" /> */}
               </Box>
             </Box>
             <Box
@@ -115,6 +132,7 @@ export default function StudentProfile() {
                 bgcolor: 'background.default',
                 borderRadius: 3,
                 minWidth: 110,
+                width: { xs: '100%', sm: 'auto' },
               }}
             >
               <Typography
@@ -152,7 +170,13 @@ export default function StudentProfile() {
         <Grid item xs={12} md={6}>
           <Card
             elevation={0}
-            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, height: '100%' }}
+            sx={{
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 1,
+              m: 1,
+              eight: '100%',
+            }}
           >
             <CardContent sx={{ p: 3 }}>
               <Typography variant="h6" fontWeight={700} gutterBottom>
@@ -191,7 +215,7 @@ export default function StudentProfile() {
         <Grid item xs={12} md={6}>
           <Card
             elevation={0}
-            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, mb: 2.5 }}
+            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, m: 1 }}
           >
             <CardContent sx={{ p: 3 }}>
               <Typography variant="h6" fontWeight={700} gutterBottom>
@@ -240,7 +264,7 @@ export default function StudentProfile() {
           {profile?.guardians?.length > 0 && (
             <Card
               elevation={0}
-              sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}
+              sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, m: 1 }}
             >
               <CardContent sx={{ p: 3 }}>
                 <Typography variant="h6" fontWeight={700} gutterBottom>

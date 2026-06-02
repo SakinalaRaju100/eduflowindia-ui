@@ -24,7 +24,7 @@ export default function ParentDashboard() {
   const children = data?.data?.data || [];
 
   return (
-    <Box>
+    <Box sx={{ m: 1 }}>
       <Typography variant="h5" fontWeight={700} gutterBottom>
         My Children
       </Typography>

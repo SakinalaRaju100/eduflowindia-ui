@@ -147,10 +147,10 @@ export default function StudentFees() {
   };
 
   return (
-    <Box>
-      <Typography variant="h5" fontWeight={700} gutterBottom>
+    <Box sx={{ m: 1 }}>
+      {/* <Typography variant="h5" fontWeight={700} gutterBottom>
         Fee Details
-      </Typography>
+      </Typography> */}
 
       <Grid container spacing={2.5} sx={{ mb: 3 }}>
         <Grid item xs={12} sm={4}>

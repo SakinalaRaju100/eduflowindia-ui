@@ -33,9 +33,9 @@ export default function StudentMessages() {
 
   return (
     <Box>
-      <Typography variant="h5" fontWeight={700} gutterBottom>
+      {/* <Typography variant="h5" fontWeight={700} gutterBottom>
         Direct Messages
-      </Typography>
+      </Typography> */}
 
       <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
         <CardContent sx={{ p: 0 }}>

@@ -165,170 +165,193 @@ export default function TopBar({
       }}
     >
       <Toolbar
-        sx={{ justifyContent: 'space-between', minHeight: '64px !important', px: { xs: 2, sm: 3 } }}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          minHeight: '64px !important',
+          px: { xs: 2, sm: 3 },
+        }}
       >
-        {/* Page Title */}
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {isMobile && (
-            <IconButton onClick={onToggleSidebar} edge="start" sx={{ mr: 1.5 }}>
-              <MenuIcon />
-            </IconButton>
-          )}
-          <Box>
-            <Typography variant="h6" fontWeight={700} sx={{ lineHeight: 1 }}>
-              {pageTitle || 'Dashboard'}
-            </Typography>
+        {isMobile && (
+          <IconButton onClick={onToggleSidebar} edge="start" sx={{ mr: 1.5, flexShrink: 0 }}>
+            <MenuIcon />
+          </IconButton>
+        )}
 
-            <Typography
-              variant="caption"
-              fontWeight={700}
-              fontSize={{ xs: 9, md: 12 }}
-              color="text.secondary"
-            >
-              {new Date().toLocaleDateString('en-IN', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </Typography>
-          </Box>
-        </Box>
-
-        {/* Right Side */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {showYearDropdown && user && (
-            <FormControl size="small" sx={{ minWidth: 130, mr: { xs: 0, sm: 1 } }}>
-              <Select
-                value={selectedYear}
-                onChange={(e, child) => {
-                  const ayObj = JSON.parse(child.props['data-ay']);
-                  // console.log('selectedAcademicYearObject :>> ', ayObj);
-                  setSelectedYear(e.target.value);
-                  if (onYearChange) onYearChange(e.target.value, ayObj);
-                }}
-                disabled={isYearDropdownDisabled}
-                sx={{
-                  height: 32,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  bgcolor:
-                    theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
-                  '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                  '& .MuiSelect-select': { py: 0.5, px: 1.5, pr: '32px' },
-                }}
+        {/* Scrollable Container */}
+        <Box
+          sx={{
+            display: 'flex',
+            flex: 1,
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+            '&::-webkit-scrollbar': { display: 'none' },
+          }}
+        >
+          {/* Page Title */}
+          <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0, mr: 2 }}>
+            <Box>
+              <Typography
+                variant="h6"
+                fontWeight={700}
+                sx={{ lineHeight: 1, fontSize: { xs: 12, md: 16 } }}
               >
-                {user?.role === 'student' || (isParent && selectedChildId)
-                  ? allClasses
-                      .filter((c) =>
-                        c.students?.some((s) => String(s._id || s) === String(targetStudentId)),
-                      )
-                      .map((c) => {
-                        const ay = c.academicYear || 'Unknown';
-                        const cname = c.name || `Grade ${c.grade} - ${c.section}`;
-                        const ayObj = {
-                          year: ay,
-                          startDate: c.academicStartDate,
-                          endDate: c.academicEndDate,
-                        };
-                        return (
-                          <MenuItem
-                            key={c._id}
-                            value={ay}
-                            sx={{ fontSize: 13 }}
-                            data-ay={JSON.stringify(ayObj)}
-                          >
-                            {ay} ({cname})
-                          </MenuItem>
-                        );
-                      })
-                  : academicYears.map((ay) => (
-                      <MenuItem
-                        key={ay.year}
-                        value={ay.year}
-                        sx={{ fontSize: 13 }}
-                        data-ay={JSON.stringify(ay)}
-                      >
-                        {ay.year} {ay.isCurrent ? '(Current)' : ''}
-                      </MenuItem>
-                    ))}
-              </Select>
-            </FormControl>
-          )}
+                {pageTitle || 'Dashboard'}
+              </Typography>
 
-          <Tooltip title={`Switch to ${theme.palette.mode === 'light' ? 'dark' : 'light'} mode`}>
-            <IconButton onClick={toggleMode} size="small">
-              {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
-            </IconButton>
-          </Tooltip>
-
-          {user && (
-            <IconButton size="small" onClick={() => setNotificationsOpen(true)}>
-              <Badge badgeContent={unreadCount} color="error">
-                <Notifications />
-              </Badge>
-            </IconButton>
-          )}
-
-          {user ? (
-            <Box
-              onClick={(e) => setAnchorEl(e.currentTarget)}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                cursor: 'pointer',
-                px: 1.5,
-                py: 0.8,
-                borderRadius: 2,
-                border: `1px solid ${theme.palette.divider}`,
-                '&:hover': { bgcolor: theme.palette.action.hover },
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <Avatar
-                src={user?.photo}
-                sx={{
-                  width: 30,
-                  height: 30,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  bgcolor: ROLE_COLORS[user?.role],
-                }}
+              <Typography
+                variant="caption"
+                fontWeight={700}
+                fontSize={{ xs: 9, md: 12 }}
+                color="text.secondary"
               >
-                {user?.firstName?.[0]}
-                {user?.lastName?.[0]}
-              </Avatar>
-              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                <Typography variant="body2" fontWeight={600} sx={{ lineHeight: 1 }}>
-                  {user?.firstName} {user?.lastName}
-                </Typography>
-                <Chip
-                  label={user?.role?.toUpperCase()}
-                  size="small"
-                  sx={{
-                    height: 14,
-                    fontSize: 9,
-                    fontWeight: 700,
-                    bgcolor: `${ROLE_COLORS[user?.role]}15`,
-                    color: ROLE_COLORS[user?.role],
-                    '& .MuiChip-label': { px: 0.8 },
-                  }}
-                />
-              </Box>
-              <KeyboardArrowDown sx={{ fontSize: 16, color: 'text.secondary' }} />
+                {new Date().toLocaleDateString('en-IN', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </Typography>
             </Box>
-          ) : (
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => navigate('/login')}
-              startIcon={<Lock />}
-              sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
-            >
-              Login
-            </Button>
-          )}
+          </Box>
+
+          {/* Right Side */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+            {showYearDropdown && user && (
+              <FormControl size="small" sx={{ minWidth: 130, mr: { xs: 0, sm: 1 } }}>
+                <Select
+                  value={selectedYear}
+                  onChange={(e, child) => {
+                    const ayObj = JSON.parse(child.props['data-ay']);
+                    // console.log('selectedAcademicYearObject :>> ', ayObj);
+                    setSelectedYear(e.target.value);
+                    if (onYearChange) onYearChange(e.target.value, ayObj);
+                  }}
+                  disabled={isYearDropdownDisabled}
+                  sx={{
+                    height: 32,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    bgcolor:
+                      theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                    '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                    '& .MuiSelect-select': { py: 0.5, px: 1.5, pr: '32px' },
+                  }}
+                >
+                  {user?.role === 'student' || (isParent && selectedChildId)
+                    ? allClasses
+                        .filter((c) =>
+                          c.students?.some((s) => String(s._id || s) === String(targetStudentId)),
+                        )
+                        .map((c) => {
+                          const ay = c.academicYear || 'Unknown';
+                          const cname = c.name || `Grade ${c.grade} - ${c.section}`;
+                          const ayObj = {
+                            year: ay,
+                            startDate: c.academicStartDate,
+                            endDate: c.academicEndDate,
+                          };
+                          return (
+                            <MenuItem
+                              key={c._id}
+                              value={ay}
+                              sx={{ fontSize: 13 }}
+                              data-ay={JSON.stringify(ayObj)}
+                            >
+                              {ay} ({cname})
+                            </MenuItem>
+                          );
+                        })
+                    : academicYears.map((ay) => (
+                        <MenuItem
+                          key={ay.year}
+                          value={ay.year}
+                          sx={{ fontSize: 13 }}
+                          data-ay={JSON.stringify(ay)}
+                        >
+                          {ay.year} {ay.isCurrent ? '(Current)' : ''}
+                        </MenuItem>
+                      ))}
+                </Select>
+              </FormControl>
+            )}
+
+            <Tooltip title={`Switch to ${theme.palette.mode === 'light' ? 'dark' : 'light'} mode`}>
+              <IconButton onClick={toggleMode} size="small">
+                {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+              </IconButton>
+            </Tooltip>
+
+            {user && (
+              <IconButton size="small" onClick={() => setNotificationsOpen(true)}>
+                <Badge badgeContent={unreadCount} color="error">
+                  <Notifications />
+                </Badge>
+              </IconButton>
+            )}
+
+            {user ? (
+              <Box
+                onClick={(e) => setAnchorEl(e.currentTarget)}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  cursor: 'pointer',
+                  px: 1.5,
+                  py: 0.8,
+                  borderRadius: 2,
+                  border: `1px solid ${theme.palette.divider}`,
+                  '&:hover': { bgcolor: theme.palette.action.hover },
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <Avatar
+                  src={user?.photo}
+                  sx={{
+                    width: 30,
+                    height: 30,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    bgcolor: ROLE_COLORS[user?.role],
+                  }}
+                >
+                  {user?.firstName?.[0]}
+                  {user?.lastName?.[0]}
+                </Avatar>
+                <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                  <Typography variant="body2" fontWeight={600} sx={{ lineHeight: 1 }}>
+                    {user?.firstName} {user?.lastName}
+                  </Typography>
+                  <Chip
+                    label={user?.role?.toUpperCase()}
+                    size="small"
+                    sx={{
+                      height: 14,
+                      fontSize: 9,
+                      fontWeight: 700,
+                      bgcolor: `${ROLE_COLORS[user?.role]}15`,
+                      color: ROLE_COLORS[user?.role],
+                      '& .MuiChip-label': { px: 0.8 },
+                    }}
+                  />
+                </Box>
+                <KeyboardArrowDown sx={{ fontSize: 16, color: 'text.secondary' }} />
+              </Box>
+            ) : (
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => navigate('/login')}
+                startIcon={<Lock />}
+                sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+              >
+                Login
+              </Button>
+            )}
+          </Box>
         </Box>
       </Toolbar>
 

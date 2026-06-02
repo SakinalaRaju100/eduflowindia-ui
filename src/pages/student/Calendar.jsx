@@ -169,7 +169,7 @@ export default function StudentCalendar() {
   const selCanApplyLeave = selectedDay > todayStr && !selHoliday;
 
   return (
-    <Box>
+    <Box sx={{ m: 1 }}>
       {/* Attendance summary */}
       <Grid container spacing={2.5} sx={{ mb: 3 }}>
         {[

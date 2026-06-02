@@ -44,10 +44,13 @@ export default function StudentAnnouncements() {
 
   return (
     <Box>
-      <Typography variant="h5" fontWeight={700} gutterBottom>
+      {/* <Typography variant="h5" fontWeight={700} gutterBottom>
         Announcements
-      </Typography>
-      <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
+      </Typography> */}
+      <Card
+        elevation={0}
+        sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, m: 1 }}
+      >
         <CardContent sx={{ p: 3 }}>
           {filteredAnnouncements.length === 0 ? (
             <Typography color="text.secondary">No announcements for the selected year</Typography>

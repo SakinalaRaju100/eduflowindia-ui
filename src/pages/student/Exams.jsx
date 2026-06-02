@@ -46,12 +46,15 @@ export default function StudentExams() {
 
   return (
     <Box>
-      <Typography variant="h5" fontWeight={700} gutterBottom>
+      {/* <Typography variant="h5" fontWeight={700} gutterBottom>
         Exams & Results
-      </Typography>
+      </Typography> */}
 
       {filteredResults.length === 0 && (
-        <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
+        <Card
+          elevation={0}
+          sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, m: 1 }}
+        >
           <CardContent sx={{ p: 4, textAlign: 'center' }}>
             <Typography color="text.secondary">No exam results available yet.</Typography>
           </CardContent>
@@ -59,16 +62,13 @@ export default function StudentExams() {
       )}
 
       {Object.entries(byTerm).map(([term, termResults]) => (
-        <Box key={term} sx={{ mb: 4 }}>
-          <Typography variant="h6" fontWeight={700} gutterBottom>
-            {term}
-          </Typography>
+        <Box key={term} sx={{ mb: 1 }}>
           <Grid container spacing={2.5}>
             {termResults.map((r) => (
               <Grid item xs={12} lg={6} key={r._id}>
                 <Card
                   elevation={0}
-                  sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}
+                  sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, m: 1 }}
                 >
                   <CardContent sx={{ p: 3 }}>
                     <Box
@@ -76,11 +76,11 @@ export default function StudentExams() {
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'flex-start',
-                        mb: 2,
                       }}
                     >
                       <Box>
                         <Typography variant="h6" fontWeight={700}>
+                          {term} {'-'}
                           {r.exam?.title}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
