@@ -37,7 +37,7 @@ import {
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useOutletContext } from 'react-router-dom';
-import { feeAPI, principalAPI } from '@/api/client';
+import api, { feeAPI, principalAPI } from '@/api/client';
 import DataTable from '@/components/common/DataTable';
 import StatCard from '@/components/common/StatCard';
 import StudentPopup from '@/components/common/StudentPopup';
@@ -54,6 +54,7 @@ export default function PrincipalFees() {
   const [popupStudent, setPopupStudent] = useState(null);
   const [paymentForm, setPaymentForm] = useState({ paymentMode: 'cash', receiptNo: '' });
   const [confirmCollect, setConfirmCollect] = useState(null);
+  const [verifyDialog, setVerifyDialog] = useState(null);
   const [error, setError] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
   const [createForm, setCreateForm] = useState({
@@ -208,6 +209,17 @@ export default function PrincipalFees() {
       setError('');
     },
     onError: (err) => setError(err.response?.data?.message || 'Failed to collect payment'),
+  });
+
+  const verifyMutation = useMutation({
+    mutationFn: ({ feeId, installmentNo, action }) =>
+      api.post(`/fees/${feeId}/installment/${installmentNo}/verify`, { action }),
+    onSuccess: () => {
+      qc.invalidateQueries(['fees']);
+      setVerifyDialog(null);
+      setError('');
+    },
+    onError: (err) => setError(err.response?.data?.message || 'Failed to verify payment'),
   });
 
   const handleAddInst = () =>
@@ -562,13 +574,49 @@ export default function PrincipalFees() {
                             </TableCell>
                             <TableCell align="center">
                               <Chip
-                                label={inst.isPaid ? 'Paid' : isOverdue ? 'Overdue' : 'Pending'}
+                                label={
+                                  inst.status === 'under verification'
+                                    ? 'Under Verification'
+                                    : inst.isPaid
+                                      ? 'Paid'
+                                      : isOverdue
+                                        ? 'Overdue'
+                                        : 'Pending'
+                                }
                                 size="small"
-                                color={inst.isPaid ? 'success' : isOverdue ? 'error' : 'default'}
+                                color={
+                                  inst.status === 'under verification'
+                                    ? 'warning'
+                                    : inst.isPaid
+                                      ? 'success'
+                                      : isOverdue
+                                        ? 'error'
+                                        : 'default'
+                                }
                               />
                             </TableCell>
                             <TableCell align="center">
-                              {inst.isPaid ? (
+                              {inst.status === 'under verification' ? (
+                                <Button
+                                  size="small"
+                                  variant="contained"
+                                  color="warning"
+                                  sx={{ textTransform: 'none' }}
+                                  onClick={() =>
+                                    setVerifyDialog({
+                                      feeId: fee._id,
+                                      installmentNo: inst.installmentNo,
+                                      amount: inst.amount,
+                                      feeType: fee.feeType,
+                                      paymentProof: inst.paymentProof,
+                                      paymentMode: inst.paymentMode,
+                                      submittedAt: inst.submittedAt,
+                                    })
+                                  }
+                                >
+                                  Verify
+                                </Button>
+                              ) : inst.isPaid ? (
                                 <Typography variant="caption" color="text.secondary">
                                   Paid on{' '}
                                   {inst.paidDate
@@ -675,6 +723,129 @@ export default function PrincipalFees() {
               'Confirm Payment'
             )}
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Verify Payment Proof Dialog */}
+      <Dialog
+        open={Boolean(verifyDialog)}
+        onClose={() => {
+          setVerifyDialog(null);
+          setError('');
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle fontWeight={700}>Verify Payment Proof</DialogTitle>
+        <DialogContent dividers>
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+              <Typography variant="body1">
+                <strong>Fee Type:</strong> {verifyDialog?.feeType}
+              </Typography>
+              <Typography variant="body1">
+                <strong>Installment:</strong> #{verifyDialog?.installmentNo}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+              <Typography variant="body1">
+                <strong>Amount:</strong> ₹{verifyDialog?.amount?.toLocaleString()}
+              </Typography>
+              <Typography variant="body1" sx={{ textTransform: 'capitalize' }}>
+                <strong>Method:</strong> {verifyDialog?.paymentMode}
+              </Typography>
+            </Box>
+            <Typography variant="body1">
+              <strong>Submitted At:</strong>{' '}
+              {verifyDialog?.submittedAt
+                ? format(new Date(verifyDialog.submittedAt), 'dd MMM yyyy hh:mm a')
+                : '—'}
+            </Typography>
+
+            {verifyDialog?.paymentProof ? (
+              <Box sx={{ mt: 2, textAlign: 'center' }}>
+                {verifyDialog.paymentProof.endsWith('.pdf') ? (
+                  <iframe
+                    src={verifyDialog.paymentProof}
+                    title="Payment Proof"
+                    width="100%"
+                    height="300px"
+                    style={{ border: '1px solid #ccc', borderRadius: '4px' }}
+                  />
+                ) : (
+                  <Box
+                    component="img"
+                    src={verifyDialog.paymentProof}
+                    alt="Payment Proof"
+                    sx={{
+                      maxWidth: '100%',
+                      maxHeight: '400px',
+                      borderRadius: 2,
+                      border: '1px solid #ddd',
+                    }}
+                  />
+                )}
+                <Button
+                  variant="text"
+                  size="small"
+                  href={verifyDialog.paymentProof}
+                  target="_blank"
+                  sx={{ mt: 1 }}
+                >
+                  Open in New Tab
+                </Button>
+              </Box>
+            ) : (
+              <Typography color="text.secondary" sx={{ mt: 2, fontStyle: 'italic' }}>
+                No proof image attached.
+              </Typography>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2.5, justifyContent: 'space-between' }}>
+          <Button
+            onClick={() => {
+              setVerifyDialog(null);
+              setError('');
+            }}
+          >
+            Cancel
+          </Button>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="contained"
+              color="error"
+              disabled={verifyMutation.isPending}
+              onClick={() =>
+                verifyMutation.mutate({
+                  feeId: verifyDialog.feeId,
+                  installmentNo: verifyDialog.installmentNo,
+                  action: 'reject',
+                })
+              }
+            >
+              Reject
+            </Button>
+            <Button
+              variant="contained"
+              color="success"
+              disabled={verifyMutation.isPending}
+              onClick={() =>
+                verifyMutation.mutate({
+                  feeId: verifyDialog.feeId,
+                  installmentNo: verifyDialog.installmentNo,
+                  action: 'approve',
+                })
+              }
+            >
+              Approve
+            </Button>
+          </Box>
         </DialogActions>
       </Dialog>
 

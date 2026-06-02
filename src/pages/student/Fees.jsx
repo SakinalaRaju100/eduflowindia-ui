@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Card,
@@ -15,10 +15,22 @@ import {
   Grid,
   IconButton,
   Tooltip,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Divider,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  Snackbar,
+  Alert,
+  CircularProgress,
 } from '@mui/material';
 import { Download } from '@mui/icons-material';
-import { useQuery } from '@tanstack/react-query';
-import { studentAPI } from '@/api/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import api, { studentAPI } from '@/api/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import { useOutletContext, useParams } from 'react-router-dom';
@@ -30,11 +42,50 @@ export default function StudentFees() {
   const { studentId } = useParams();
   const targetId = studentId || user?._id;
   const { selectedYear } = useOutletContext() || {};
+  const qc = useQueryClient();
+
+  const [payDialogOpen, setPayDialogOpen] = useState(false);
+  const [selectedInstForPay, setSelectedInstForPay] = useState(null);
+  const [paymentStep, setPaymentStep] = useState(1);
+  const [paymentMethod, setPaymentMethod] = useState('upi');
+  const [paymentProof, setPaymentProof] = useState(null);
+  const [snackbarMsg, setSnackbarMsg] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+
+  const submitPaymentMutation = useMutation({
+    mutationFn: async ({ feeId, installmentNo, file, method }) => {
+      const formData = new FormData();
+      formData.append('proof', file);
+      formData.append('method', method);
+      return api.post(`/fees/${feeId}/installment/${installmentNo}/pay`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries(['student-full', targetId]);
+      setPayDialogOpen(false);
+      setSnackbarSeverity('success');
+      setSnackbarMsg('Payment proof submitted successfully! Verification pending by Principal.');
+    },
+    onError: (err) => {
+      setSnackbarSeverity('error');
+      setSnackbarMsg(err.response?.data?.message || 'Failed to submit payment proof.');
+    },
+  });
+
   const { data, isLoading } = useQuery({
     queryKey: ['student-full', targetId],
     queryFn: () => studentAPI.getFullData(targetId),
     enabled: !!targetId,
   });
+
+  const paymentProofPreview = React.useMemo(() => {
+    if (paymentProof) {
+      return URL.createObjectURL(paymentProof);
+    }
+    return null;
+  }, [paymentProof]);
+
   const d = data?.data?.data;
   const profile = d?.profile;
   const studentUser = profile?.userId || user;
@@ -43,7 +94,13 @@ export default function StudentFees() {
 
   if (isLoading) return <Typography>Loading...</Typography>;
 
-  const filteredFees = feeRecords.filter((f) => !selectedYear || f.academicYear === selectedYear);
+  const filteredFees = feeRecords
+    .filter((f) => !selectedYear || f.academicYear === selectedYear)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  const school =
+    (typeof user?.institution === 'object' ? user.institution : profile?.institution) || {};
+  const paymentDetails = school.paymentDetails || {};
 
   const totalExpected = filteredFees.reduce((acc, f) => acc + (f.totalAmount || 0), 0);
   const totalPaid = filteredFees.reduce(
@@ -224,7 +281,7 @@ export default function StudentFees() {
                       <TableCell align="center">Due Date</TableCell>
                       <TableCell align="center">Paid Date</TableCell>
                       <TableCell align="center">Status</TableCell>
-                      <TableCell>Receipt</TableCell>
+                      <TableCell>Receipt / Action</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -240,13 +297,29 @@ export default function StudentFees() {
                         </TableCell>
                         <TableCell align="center">
                           <Chip
-                            label={inst.isPaid ? 'Paid' : 'Pending'}
+                            label={
+                              inst.status === 'under verification'
+                                ? 'Under Verification'
+                                : inst.isPaid
+                                  ? 'Paid'
+                                  : 'Pending'
+                            }
                             size="small"
-                            color={inst.isPaid ? 'success' : 'default'}
+                            color={
+                              inst.status === 'under verification'
+                                ? 'warning'
+                                : inst.isPaid
+                                  ? 'success'
+                                  : 'default'
+                            }
                           />
                         </TableCell>
                         <TableCell>
-                          {inst.isPaid ? (
+                          {inst.status === 'under verification' ? (
+                            <Typography variant="caption" color="warning.main" fontWeight={700}>
+                              Under Verification
+                            </Typography>
+                          ) : inst.isPaid ? (
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                               <Typography variant="caption" color="text.secondary">
                                 {inst.receiptNo || 'Paid'}
@@ -262,9 +335,21 @@ export default function StudentFees() {
                               </Tooltip>
                             </Box>
                           ) : (
-                            <Typography variant="caption" color="text.secondary">
-                              —
-                            </Typography>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              color="primary"
+                              sx={{ textTransform: 'none' }}
+                              onClick={() => {
+                                setSelectedInstForPay({ fee, inst });
+                                setPaymentStep(1);
+                                setPaymentMethod('upi');
+                                setPaymentProof(null);
+                                setPayDialogOpen(true);
+                              }}
+                            >
+                              Pay
+                            </Button>
                           )}
                         </TableCell>
                       </TableRow>
@@ -276,6 +361,182 @@ export default function StudentFees() {
           </Card>
         ))
       )}
+
+      {/* Payment Popup */}
+      <Dialog open={payDialogOpen} onClose={() => setPayDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle fontWeight={700}>Pay Fee Installment</DialogTitle>
+        <Divider />
+        <DialogContent>
+          {paymentStep === 1 ? (
+            <Box>
+              <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+                Amount to Pay: ₹{selectedInstForPay?.inst?.amount?.toLocaleString()}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Select Payment Method
+              </Typography>
+              <RadioGroup
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                sx={{ mt: 1 }}
+              >
+                <FormControlLabel
+                  value="upi"
+                  control={<Radio />}
+                  label={`UPI (UPI ID: ${paymentDetails.upiId || 'Not provided'})`}
+                />
+                <FormControlLabel value="qr" control={<Radio />} label="Scan QR Code" />
+                <FormControlLabel
+                  value="bank"
+                  control={<Radio />}
+                  label={`Bank Transfer (A/C: ${paymentDetails.bankAccountNumber || 'Not provided'}, IFSC: ${paymentDetails.ifscCode || 'Not provided'})`}
+                />
+                {paymentDetails.upiNumber && (
+                  <FormControlLabel
+                    value="mobile"
+                    control={<Radio />}
+                    label={`Mobile Number (${paymentDetails.upiNumber})`}
+                  />
+                )}
+              </RadioGroup>
+
+              {paymentMethod === 'qr' && (
+                <Box
+                  sx={{
+                    mt: 3,
+                    textAlign: 'center',
+                    p: 3,
+                    border: '1px dashed',
+                    borderColor: 'divider',
+                    borderRadius: 2,
+                  }}
+                >
+                  {paymentDetails.upiQrCode ? (
+                    <Box
+                      component="img"
+                      src={paymentDetails.upiQrCode}
+                      alt="School QR Code"
+                      sx={{ maxWidth: '100%', maxHeight: '250px', borderRadius: 1 }}
+                    />
+                  ) : (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ py: 4, bgcolor: 'action.hover', borderRadius: 1 }}
+                    >
+                      [ QR Code Image Placeholder ]
+                    </Typography>
+                  )}
+                  <Typography variant="caption" display="block" mt={1}>
+                    Scan this QR code with any UPI app (GPay, PhonePe, Paytm, etc.)
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          ) : (
+            <Box>
+              <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+                Upload Payment Proof
+              </Typography>
+              <Typography variant="body2" color="text.secondary" gutterBottom sx={{ mb: 3 }}>
+                Please upload the screenshot or receipt of your successful payment for verification
+                by the principal.
+              </Typography>
+              <Button
+                variant="outlined"
+                component="label"
+                fullWidth
+                sx={{ py: 1.5, borderStyle: 'dashed' }}
+              >
+                Select File
+                <input
+                  type="file"
+                  hidden
+                  onChange={(e) => setPaymentProof(e.target.files[0])}
+                  accept="image/*,.pdf"
+                />
+              </Button>
+              {paymentProof && (
+                <Box sx={{ mt: 3, textAlign: 'center' }}>
+                  {paymentProof.type.startsWith('image/') ? (
+                    <Box
+                      component="img"
+                      src={paymentProofPreview}
+                      alt="Payment Proof Preview"
+                      sx={{
+                        maxWidth: '100%',
+                        maxHeight: 200,
+                        borderRadius: 1,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                      }}
+                    />
+                  ) : paymentProof.type === 'application/pdf' ? (
+                    <iframe
+                      src={paymentProofPreview}
+                      title="Payment Proof PDF"
+                      width="100%"
+                      height="200px"
+                      style={{ border: '1px solid #ccc', borderRadius: '4px' }}
+                    />
+                  ) : null}
+                  <Typography
+                    variant="caption"
+                    display="block"
+                    sx={{ mt: 1, color: 'success.main', fontWeight: 600 }}
+                  >
+                    File Selected: {paymentProof.name}
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2.5 }}>
+          <Button onClick={() => setPayDialogOpen(false)}>Cancel</Button>
+          {paymentStep === 1 ? (
+            <Button variant="contained" onClick={() => setPaymentStep(2)}>
+              Proceed to Pay
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              color="success"
+              disabled={!paymentProof || submitPaymentMutation.isPending}
+              onClick={() => {
+                submitPaymentMutation.mutate({
+                  feeId: selectedInstForPay?.fee?._id,
+                  installmentNo: selectedInstForPay?.inst?.installmentNo,
+                  file: paymentProof,
+                  method: paymentMethod,
+                });
+              }}
+            >
+              {submitPaymentMutation.isPending ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                'Submit for Verification'
+              )}
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={!!snackbarMsg}
+        autoHideDuration={5000}
+        onClose={() => setSnackbarMsg('')}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbarMsg('')}
+          severity={snackbarSeverity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbarMsg}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
