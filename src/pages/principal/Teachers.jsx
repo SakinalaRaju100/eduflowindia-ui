@@ -328,7 +328,15 @@ function TeacherAttendanceMarker({ open, onClose, teachers }) {
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle fontWeight={700}>Teachers Attendance</DialogTitle>
       <DialogContent dividers>
-        <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap', alignItems: 'center' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            gap: { xs: 1.5, sm: 2 },
+            mb: 3,
+            flexWrap: 'wrap',
+            alignItems: 'center',
+          }}
+        >
           <TextField
             type="date"
             size="small"
@@ -337,20 +345,38 @@ function TeacherAttendanceMarker({ open, onClose, teachers }) {
             onChange={(e) => setDate(e.target.value)}
             InputLabelProps={{ shrink: true }}
             inputProps={{ max: new Date().toISOString().split('T')[0] }}
-            sx={{ width: 160 }}
+            sx={{ width: { xs: '100%', sm: 160 } }}
           />
-          <Button
-            size="small"
-            variant="outlined"
-            color="success"
-            onClick={() => markAll('present')}
+          <Box sx={{ display: 'flex', gap: 1, flex: { xs: 1, sm: 'none' } }}>
+            <Button
+              size="small"
+              variant="outlined"
+              color="success"
+              onClick={() => markAll('present')}
+              sx={{ flex: { xs: 1, sm: 'none' } }}
+            >
+              All Present
+            </Button>
+            <Button
+              size="small"
+              variant="outlined"
+              color="error"
+              onClick={() => markAll('absent')}
+              sx={{ flex: { xs: 1, sm: 'none' } }}
+            >
+              All Absent
+            </Button>
+          </Box>
+          <Box
+            sx={{
+              ml: { xs: 0, md: 'auto' },
+              mt: { xs: 1, md: 0 },
+              display: 'flex',
+              gap: 1,
+              flexWrap: 'wrap',
+              width: { xs: '100%', md: 'auto' },
+            }}
           >
-            All Present
-          </Button>
-          <Button size="small" variant="outlined" color="error" onClick={() => markAll('absent')}>
-            All Absent
-          </Button>
-          <Box sx={{ ml: 'auto', display: 'flex', gap: 1 }}>
             <Chip label={`${presentCount} Present`} size="small" color="success" />
             <Chip label={`${teachers.length - presentCount} Absent`} size="small" color="error" />
             <Chip label={`${markedCount}/${teachers.length} Marked`} size="small" color="info" />
@@ -366,7 +392,8 @@ function TeacherAttendanceMarker({ open, onClose, teachers }) {
                 sx={{
                   p: 1.5,
                   display: 'flex',
-                  alignItems: 'center',
+                  alignItems: { xs: 'stretch', sm: 'center' },
+                  flexDirection: { xs: 'column', sm: 'row' },
                   gap: 1.5,
                   border: '1px solid',
                   borderColor: opt ? opt.color + '44' : 'divider',
@@ -374,34 +401,44 @@ function TeacherAttendanceMarker({ open, onClose, teachers }) {
                   borderRadius: 2,
                 }}
               >
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ minWidth: 24, textAlign: 'center', fontWeight: 700 }}
-                >
-                  {String(i + 1).padStart(2, '0')}
-                </Typography>
-                <Avatar
-                  src={teacher.userId?.photo}
-                  sx={{ width: 36, height: 36, fontSize: 13, bgcolor: 'success.main' }}
-                >
-                  {teacher.userId?.firstName?.[0]}
-                </Avatar>
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="body2" fontWeight={600}>
-                    {teacher.userId?.firstName} {teacher.userId?.lastName}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ minWidth: 24, textAlign: 'center', fontWeight: 700 }}
+                  >
+                    {String(i + 1).padStart(2, '0')}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {teacher.teacherId}
-                  </Typography>
+                  <Avatar
+                    src={teacher.userId?.photo}
+                    sx={{ width: 36, height: 36, fontSize: 13, bgcolor: 'success.main' }}
+                  >
+                    {teacher.userId?.firstName?.[0]}
+                  </Avatar>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="body2" fontWeight={600}>
+                      {teacher.userId?.firstName} {teacher.userId?.lastName}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {teacher.teacherId}
+                    </Typography>
+                  </Box>
                 </Box>
-                <Box sx={{ display: 'flex', gap: 0.5 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: { xs: 1, sm: 0.5 },
+                    width: { xs: '100%', sm: 'auto' },
+                    justifyContent: { xs: 'space-between', sm: 'flex-start' },
+                  }}
+                >
                   {STATUS_OPTIONS.map((s) => (
                     <Tooltip key={s.key} title={s.label}>
                       <Box
                         onClick={() => mark(teacher._id, s.key)}
                         sx={{
-                          width: 32,
+                          flex: { xs: 1, sm: 'none' },
+                          width: { xs: 'auto', sm: 32 },
                           height: 32,
                           borderRadius: 1.5,
                           display: 'flex',
@@ -493,6 +530,16 @@ export default function PrincipalTeachers() {
     },
   });
 
+  const resetPasswordMutation = useMutation({
+    mutationFn: (userId) => api.patch(`/users/${userId}/reset-password`, { password: '1234' }),
+    onSuccess: () => {
+      alert('Password reset to 1234 successfully!');
+    },
+    onError: (err) => {
+      alert(err.response?.data?.message || 'Failed to reset password');
+    },
+  });
+
   const handleOpenEdit = (t) => {
     const u = t.userId || {};
     setEditId(t._id);
@@ -571,6 +618,28 @@ export default function PrincipalTeachers() {
       label: 'Classes',
       render: (r) => (
         <Chip label={`${r.assignedClasses?.length || 0} classes`} size="small" color="primary" />
+      ),
+    },
+    {
+      key: 'resetPassword',
+      label: 'Security',
+      sortable: false,
+      render: (r) => (
+        <Button
+          size="small"
+          variant="outlined"
+          color="warning"
+          disabled={resetPasswordMutation.isPending}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (window.confirm(`Reset password to 1234 for ${r.userId?.firstName}?`)) {
+              resetPasswordMutation.mutate(r.userId?._id);
+            }
+          }}
+          sx={{ textTransform: 'none', fontSize: 11, whiteSpace: 'nowrap' }}
+        >
+          Reset to 1234
+        </Button>
       ),
     },
     {
