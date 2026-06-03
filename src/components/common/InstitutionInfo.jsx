@@ -38,6 +38,8 @@ import {
   Close,
   PhotoCamera,
   School as SchoolIcon,
+  Share,
+  QrCode2,
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
@@ -201,6 +203,8 @@ export default function InstitutionInfo() {
   const [interestOpen, setInterestOpen] = useState(false);
   const [interestForm, setInterestForm] = useState({ name: '', phone: '', email: '', message: '' });
   const [isSubmittingInterest, setIsSubmittingInterest] = useState(false);
+
+  const [qrOpen, setQrOpen] = useState(false);
 
   const scrollRef = useRef(null);
 
@@ -401,6 +405,26 @@ export default function InstitutionInfo() {
       </Box>
     );
 
+  const uniqueId = institution.institutionUniqueId || institution.schoolUniqueId || '';
+  const shareUrl = `${window.location.origin}/${uniqueId}`;
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: institution.name,
+          text: `Check out ${institution.name} on EduFlow!`,
+          url: shareUrl,
+        });
+      } catch (error) {
+        console.log('Error sharing', error);
+      }
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      showSnackbar('Link copied to clipboard!', 'success');
+    }
+  };
+
   const defaultStories = [
     {
       name: 'Aditi Sharma',
@@ -434,53 +458,87 @@ export default function InstitutionInfo() {
 
   const content = (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {isPrincipalView && (
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: -1 }}>
-          <Button
-            variant="contained"
-            startIcon={<Edit />}
-            onClick={() => navigate('/principal/settings')}
-            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, zIndex: 1, m: 1 }}
-          >
-            Edit Profile
-          </Button>
-        </Box>
-      )}
       <InstitutionBanner propInstitution={institution} />
 
-      {/* Instagram Style Profile Stats */}
       <Box
         sx={{
           display: 'flex',
-          justifyContent: 'center',
-          gap: { xs: 4, sm: 8 },
-          py: 1,
-          px: 2,
+          flexDirection: { xs: 'column', md: 'row' },
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: 3,
+          px: { xs: 1, sm: 2 },
         }}
       >
-        <Box sx={{ textAlign: 'center', cursor: 'pointer' }}>
-          <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.2 }}>
-            {institution.postsCount || dbPosts.length}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Posts
-          </Typography>
+        {/* Instagram Style Profile Stats */}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: { xs: 4, sm: 6 },
+          }}
+        >
+          <Box sx={{ textAlign: 'center', cursor: 'pointer' }}>
+            <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.2 }}>
+              {institution.postsCount || dbPosts.length}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Posts
+            </Typography>
+          </Box>
+          <Box sx={{ textAlign: 'center', cursor: 'pointer' }}>
+            <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.2 }}>
+              {institution.followersCount?.toLocaleString() || '1,250'}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Followers
+            </Typography>
+          </Box>
+          <Box sx={{ textAlign: 'center', cursor: 'pointer' }}>
+            <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.2 }}>
+              {institution.followingCount?.toLocaleString() || '45'}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Following
+            </Typography>
+          </Box>
         </Box>
-        <Box sx={{ textAlign: 'center', cursor: 'pointer' }}>
-          <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.2 }}>
-            {institution.followersCount?.toLocaleString() || '1,250'}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Followers
-          </Typography>
-        </Box>
-        <Box sx={{ textAlign: 'center', cursor: 'pointer' }}>
-          <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.2 }}>
-            {institution.followingCount?.toLocaleString() || '45'}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Following
-          </Typography>
+
+        {/* Action Buttons */}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: { xs: 'center', md: 'flex-end' },
+            flexWrap: 'wrap',
+            gap: 1,
+          }}
+        >
+          <Button
+            variant="outlined"
+            startIcon={<Share />}
+            onClick={handleShare}
+            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, zIndex: 1 }}
+          >
+            Share
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<QrCode2 />}
+            onClick={() => setQrOpen(true)}
+            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, zIndex: 1 }}
+          >
+            QR Code
+          </Button>
+          {isPrincipalView && (
+            <Button
+              variant="contained"
+              startIcon={<Edit />}
+              onClick={() => navigate('/principal/settings')}
+              sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, zIndex: 1 }}
+            >
+              Edit Profile
+            </Button>
+          )}
         </Box>
       </Box>
 
@@ -1401,6 +1459,51 @@ export default function InstitutionInfo() {
             {isSubmittingInterest ? <CircularProgress size={24} color="inherit" /> : 'Submit'}
           </Button>
         </DialogActions>
+      </Dialog>
+
+      {/* QR Code Dialog */}
+      <Dialog open={qrOpen} onClose={() => setQrOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle
+          sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+        >
+          <Typography variant="h6" fontWeight={700}>
+            Institution QR Code
+          </Typography>
+          <IconButton onClick={() => setQrOpen(false)}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <Divider />
+        <DialogContent
+          sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 4, gap: 2 }}
+        >
+          <Typography variant="body2" color="text.secondary" textAlign="center">
+            Scan this QR code to visit the institution's public profile.
+          </Typography>
+          <Box
+            component="img"
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(shareUrl)}`}
+            alt="QR Code"
+            sx={{
+              width: 200,
+              height: 200,
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 2,
+              p: 1,
+            }}
+          />
+          <Button
+            variant="outlined"
+            onClick={() => {
+              navigator.clipboard.writeText(shareUrl);
+              showSnackbar('Link copied to clipboard!', 'success');
+            }}
+            sx={{ textTransform: 'none', mt: 1 }}
+          >
+            Copy Profile Link
+          </Button>
+        </DialogContent>
       </Dialog>
     </Box>
   );
