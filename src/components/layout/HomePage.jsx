@@ -233,8 +233,36 @@ export default function HomePage() {
 
   const likeMutation = useMutation({
     mutationFn: (id) => api.post(`/auth/posts/${id}/like`),
-    onSuccess: () => qc.invalidateQueries(['public-posts']),
-    onError: () => showSnackbar('Failed to like post', 'error'),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ['public-posts'] });
+      const previousPosts = qc.getQueryData(['public-posts']);
+      qc.setQueryData(['public-posts'], (old) => {
+        if (!old) return old;
+        return old.map((post) => {
+          if (post._id === id) {
+            const isLiked = post.likedBy?.includes(user?._id);
+            return {
+              ...post,
+              likes: isLiked ? Math.max(0, post.likes - 1) : (post.likes || 0) + 1,
+              likedBy: isLiked
+                ? post.likedBy.filter((uid) => uid !== user?._id)
+                : [...(post.likedBy || []), user?._id],
+            };
+          }
+          return post;
+        });
+      });
+      return { previousPosts };
+    },
+    onError: (err, id, context) => {
+      if (context?.previousPosts) {
+        qc.setQueryData(['public-posts'], context.previousPosts);
+      }
+      showSnackbar('Failed to update like', 'error');
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ['public-posts'] });
+    },
   });
 
   const commentMutation = useMutation({
@@ -524,7 +552,9 @@ export default function HomePage() {
                             aria-label="add to favorites"
                             color={feed.likedBy?.includes(user?._id) ? 'success' : 'error'}
                             sx={{}}
-                            onClick={() => handleLike(feed._id)}
+                            onClick={() => {
+                              handleLike(feed._id);
+                            }}
                             disabled={likeMutation.isPending}
                           >
                             {feed.likedBy?.includes(user?._id) ? <Favorite /> : <FavoriteBorder />}
