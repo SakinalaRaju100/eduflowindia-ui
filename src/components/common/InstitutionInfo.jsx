@@ -40,6 +40,7 @@ import {
   School as SchoolIcon,
   Share,
   QrCode2,
+  Download,
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
@@ -47,6 +48,7 @@ import { useQuery } from '@tanstack/react-query';
 import api from '@/api/client';
 import InstitutionBanner from '@/components/common/InstitutionBanner';
 import { showSnackbar } from '@/components/common/ShowSnackbar';
+import jsPDF from 'jspdf';
 
 const PostCarousel = ({ images }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -422,6 +424,51 @@ export default function InstitutionInfo() {
     } else {
       navigator.clipboard.writeText(shareUrl);
       showSnackbar('Link copied to clipboard!', 'success');
+    }
+  };
+
+  const handleDownloadQR = async () => {
+    try {
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(shareUrl)}`;
+      const response = await fetch(qrUrl);
+      const blob = await response.blob();
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64data = reader.result;
+        const doc = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4',
+        });
+
+        const pageWidth = 210;
+
+        doc.setFontSize(28);
+        doc.setTextColor(21, 101, 192);
+        doc.text(institution.name || 'Institution', pageWidth / 2, 60, { align: 'center' });
+
+        doc.setFontSize(14);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`ID: ${uniqueId}`, pageWidth / 2, 75, { align: 'center' });
+
+        doc.setFontSize(16);
+        doc.setTextColor(0, 0, 0);
+        doc.text('Scan this QR code to visit our public profile', pageWidth / 2, 100, {
+          align: 'center',
+        });
+
+        const qrSize = 100;
+        const qrX = (pageWidth - qrSize) / 2;
+        const qrY = 110;
+        doc.addImage(base64data, 'PNG', qrX, qrY, qrSize, qrSize);
+
+        doc.save(`${institution.name || 'Institution'}-QR.pdf`);
+      };
+      reader.readAsDataURL(blob);
+    } catch (error) {
+      console.error('Error downloading QR code:', error);
+      showSnackbar('Failed to download QR code', 'error');
     }
   };
 
@@ -1531,43 +1578,94 @@ export default function InstitutionInfo() {
         <DialogTitle
           sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
         >
-          <Typography variant="h6" fontWeight={700}>
+          <Typography
+            variant="h6"
+            fontWeight={700}
+            sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}
+          >
             Institution QR Code
           </Typography>
-          <IconButton onClick={() => setQrOpen(false)}>
-            <Close />
+          <IconButton onClick={() => setQrOpen(false)} size="small">
+            <Close fontSize="small" />
           </IconButton>
         </DialogTitle>
         <Divider />
         <DialogContent
-          sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 4, gap: 2 }}
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            p: { xs: 2, sm: 4 },
+            gap: { xs: 1.5, sm: 2 },
+          }}
         >
-          <Typography variant="body2" color="text.secondary" textAlign="center">
+          <Box sx={{ textAlign: 'center', width: '100%', mb: { xs: 0, sm: 1 } }}>
+            <Typography
+              variant="h5"
+              fontWeight={800}
+              color="primary.main"
+              gutterBottom
+              sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }}
+            >
+              {institution.name}
+            </Typography>
+            <Chip
+              label={`ID: ${uniqueId}`}
+              size="small"
+              sx={{ fontWeight: 700, fontSize: { xs: '0.7rem', sm: '0.8125rem' } }}
+            />
+          </Box>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            textAlign="center"
+            sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+          >
             Scan this QR code to visit the institution's public profile.
           </Typography>
           <Box
             component="img"
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(shareUrl)}`}
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(shareUrl)}`}
             alt="QR Code"
             sx={{
-              width: 200,
-              height: 200,
+              width: { xs: 150, sm: 200 },
+              height: { xs: 150, sm: 200 },
               border: '1px solid',
               borderColor: 'divider',
               borderRadius: 2,
               p: 1,
+              mt: 1,
             }}
           />
-          <Button
-            variant="outlined"
-            onClick={() => {
-              navigator.clipboard.writeText(shareUrl);
-              showSnackbar('Link copied to clipboard!', 'success');
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 1,
+              mt: 1,
+              width: '100%',
+              justifyContent: 'center',
+              flexWrap: 'wrap',
             }}
-            sx={{ textTransform: 'none', mt: 1 }}
           >
-            Copy Profile Link
-          </Button>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                navigator.clipboard.writeText(shareUrl);
+                showSnackbar('Link copied to clipboard!', 'success');
+              }}
+              sx={{ textTransform: 'none', fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+            >
+              Copy Link
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<Download />}
+              onClick={handleDownloadQR}
+              sx={{ textTransform: 'none', fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+            >
+              Download
+            </Button>
+          </Box>
         </DialogContent>
       </Dialog>
     </Box>
