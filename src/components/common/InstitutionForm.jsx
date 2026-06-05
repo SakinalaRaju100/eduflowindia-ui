@@ -20,6 +20,8 @@ import {
   Slider,
   Rating,
   Alert,
+  Switch,
+  FormControlLabel,
 } from '@mui/material';
 import { PhotoCamera, Delete, Close, Add, LocationOn, QrCode2 } from '@mui/icons-material';
 import api from '@/api/client';
@@ -88,6 +90,8 @@ const getDefaultForm = () => ({
   principalLastName: '',
   principalEmail: '',
   principalPhone: '',
+  showClassFees: false,
+  classFees: [],
 });
 
 export default function InstitutionForm({
@@ -152,6 +156,8 @@ export default function InstitutionForm({
         principalLastName: initialData.principalLastName || pInfo.lastName || '',
         principalEmail: initialData.principalEmail || pInfo.email || '',
         principalPhone: initialData.principalPhone || pInfo.phone || '',
+        showClassFees: initialData.showClassFees || false,
+        classFees: initialData.classFees || [],
       });
     } else {
       setForm(getDefaultForm());
@@ -300,6 +306,41 @@ export default function InstitutionForm({
 
   const handleRemoveStory = (index) => {
     setForm((p) => ({ ...p, successStories: p.successStories.filter((_, i) => i !== index) }));
+  };
+
+  const handleAddClassFee = () => {
+    setForm((p) => ({
+      ...p,
+      classFees: [...p.classFees, { className: '', fees: [{ feeName: '', amount: '' }] }],
+    }));
+  };
+
+  const handleRemoveClassFee = (index) => {
+    setForm((p) => ({ ...p, classFees: p.classFees.filter((_, i) => i !== index) }));
+  };
+
+  const handleClassFeeChange = (index, value) => {
+    const newClassFees = [...form.classFees];
+    newClassFees[index].className = value;
+    setForm((p) => ({ ...p, classFees: newClassFees }));
+  };
+
+  const handleAddFeeComponent = (classIndex) => {
+    const newClassFees = [...form.classFees];
+    newClassFees[classIndex].fees.push({ feeName: '', amount: '' });
+    setForm((p) => ({ ...p, classFees: newClassFees }));
+  };
+
+  const handleRemoveFeeComponent = (classIndex, feeIndex) => {
+    const newClassFees = [...form.classFees];
+    newClassFees[classIndex].fees = newClassFees[classIndex].fees.filter((_, i) => i !== feeIndex);
+    setForm((p) => ({ ...p, classFees: newClassFees }));
+  };
+
+  const handleFeeComponentChange = (classIndex, feeIndex, field, value) => {
+    const newClassFees = [...form.classFees];
+    newClassFees[classIndex].fees[feeIndex][field] = value;
+    setForm((p) => ({ ...p, classFees: newClassFees }));
   };
 
   const handleFetchLocation = () => {
@@ -746,6 +787,105 @@ export default function InstitutionForm({
               </Box>
             </Grid>
           </Grid>
+
+          <Typography variant="subtitle2" fontWeight={700} sx={{ mt: 3, mb: 1 }}>
+            Class-wise Fees Structure
+          </Typography>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={form.showClassFees}
+                onChange={(e) => handleChange('showClassFees', e.target.checked)}
+                color="primary"
+              />
+            }
+            label="Show Fees Section on Public Profile"
+            sx={{ mb: 2 }}
+          />
+
+          {form.showClassFees && (
+            <Box sx={{ mb: 3 }}>
+              {form.classFees.map((cls, cIdx) => (
+                <Box
+                  key={cIdx}
+                  sx={{
+                    p: 2,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 2,
+                    mb: 2,
+                    bgcolor: 'background.default',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
+                    <TextField
+                      size="small"
+                      label="Class Name"
+                      placeholder="e.g. Grade 1"
+                      value={cls.className}
+                      onChange={(e) => handleClassFeeChange(cIdx, e.target.value)}
+                      sx={{ flex: 1 }}
+                    />
+                    <IconButton color="error" onClick={() => handleRemoveClassFee(cIdx)}>
+                      <Delete />
+                    </IconButton>
+                  </Box>
+
+                  {cls.fees.map((fee, fIdx) => (
+                    <Box
+                      key={fIdx}
+                      sx={{ display: 'flex', gap: 2, mb: 1.5, alignItems: 'center', pl: 2 }}
+                    >
+                      <TextField
+                        size="small"
+                        label="Fee Name"
+                        placeholder="e.g. Tuition Fee"
+                        value={fee.feeName}
+                        onChange={(e) =>
+                          handleFeeComponentChange(cIdx, fIdx, 'feeName', e.target.value)
+                        }
+                        sx={{ flex: 1 }}
+                      />
+                      <TextField
+                        size="small"
+                        type="number"
+                        label="Amount (₹)"
+                        value={fee.amount}
+                        onChange={(e) =>
+                          handleFeeComponentChange(cIdx, fIdx, 'amount', e.target.value)
+                        }
+                        sx={{ width: 150 }}
+                      />
+                      <IconButton
+                        color="error"
+                        size="small"
+                        onClick={() => handleRemoveFeeComponent(cIdx, fIdx)}
+                      >
+                        <Delete fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  ))}
+                  <Button
+                    size="small"
+                    startIcon={<Add />}
+                    onClick={() => handleAddFeeComponent(cIdx)}
+                    sx={{ ml: 2, textTransform: 'none' }}
+                  >
+                    Add Fee Component
+                  </Button>
+                </Box>
+              ))}
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<Add />}
+                onClick={handleAddClassFee}
+                sx={{ textTransform: 'none' }}
+              >
+                Add Class
+              </Button>
+            </Box>
+          )}
 
           <Typography variant="subtitle2" fontWeight={700} sx={{ mt: 3, mb: 1 }}>
             Institution Images (Max 3)

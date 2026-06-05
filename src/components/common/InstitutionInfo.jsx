@@ -918,6 +918,71 @@ export default function InstitutionInfo() {
           </Card>
         )}
 
+      {/* Class-wise Fees Structure */}
+      {institution.showClassFees && institution.classFees?.length > 0 && (
+        <Card
+          elevation={0}
+          sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, mt: 3 }}
+        >
+          <CardContent sx={{ p: 3 }}>
+            <Typography variant="h6" fontWeight={700} gutterBottom>
+              Fee Structure
+            </Typography>
+            <Grid container spacing={2} sx={{ mt: 0.5 }}>
+              {institution.classFees.map((cls, cIdx) => (
+                <Grid item xs={12} sm={6} md={4} key={cIdx}>
+                  <Box
+                    sx={{
+                      p: 2,
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      borderRadius: 2,
+                      bgcolor: 'background.default',
+                      height: '100%',
+                    }}
+                  >
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight={700}
+                      color="primary.main"
+                      gutterBottom
+                    >
+                      {cls.className}
+                    </Typography>
+                    <Divider sx={{ mb: 1.5 }} />
+                    {cls.fees?.map((fee, fIdx) => (
+                      <Box
+                        key={fIdx}
+                        sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}
+                      >
+                        <Typography variant="body2" color="text.secondary">
+                          {fee.feeName}
+                        </Typography>
+                        <Typography variant="body2" fontWeight={600}>
+                          ₹{fee.amount?.toLocaleString()}
+                        </Typography>
+                      </Box>
+                    ))}
+                    <Divider sx={{ my: 1.5 }} />
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" fontWeight={700}>
+                        Total
+                      </Typography>
+                      <Typography variant="body2" fontWeight={800} color="primary.main">
+                        ₹
+                        {cls.fees
+                          ?.reduce((sum, f) => sum + (Number(f.amount) || 0), 0)
+                          ?.toLocaleString()}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Success Stories */}
       <Box sx={{ mt: 1 }}>
         <Typography variant="h6" fontWeight={700} gutterBottom>
