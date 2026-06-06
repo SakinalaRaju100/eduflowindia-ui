@@ -30,7 +30,7 @@ const ROLE_HOME = {
   parent: '/parent',
 };
 const DEMO = [
-  { role: 'Superadmin', email: 'superadmin@edu.com', pwd: 'Superadmin@123', color: '#6A1B9A' },
+  // { role: 'Superadmin', email: 'superadmin@edu.com', pwd: 'Superadmin@123', color: '#6A1B9A' },
   { role: 'Principal', email: 'principal@greenwood.edu', pwd: 'Principal@123', color: '#1565C0' },
   { role: 'Teacher', email: 'anjali@greenwood.edu', pwd: 'Teacher@1234', color: '#2E7D32' },
   {
